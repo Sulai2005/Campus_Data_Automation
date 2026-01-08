@@ -1,0 +1,37 @@
+# -------------------------
+# Core Web Framework
+# -------------------------
+fastapi==0.110.0
+uvicorn[standard]==0.27.1
+
+# -------------------------
+# Database & ORM
+# -------------------------
+sqlalchemy==2.0.25
+
+# -------------------------
+# Authentication & Security
+# -------------------------
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+
+# -------------------------
+# Request Handling
+# -------------------------
+python-multipart==0.0.9
+
+# -------------------------
+# Validation & Settings
+# -------------------------
+pydantic==2.6.1
+pydantic-settings==2.1.0
+
+# -------------------------
+# Data Processing (Future Modules)
+# -------------------------
+pandas==2.2.0
+
+# -------------------------
+# Dev & Debug
+# -------------------------
+python-dotenv==1.0.1
