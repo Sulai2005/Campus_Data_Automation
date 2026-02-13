@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Backend Connection Test</h1>
+
+    <div id="status"></div>
+
+    <h2>Tests:</h2>
+    <button onclick="testConnection()">1. Test Backend Connection</button><br>
+    <button onclick="testLogin()">2. Test Login (admin@campus.edu / admin123)</button><br>
+    <button onclick="testCORS()">3. Test CORS</button>
+
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showResults(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="status info">${message}</div>`;
+        }
+
+        async function testConnection() {
+            showStatus('Testing connection to backend...', 'info');
+            try {
+                const response = await fetch(`${API_URL}/`);
+                const data = await response.json();
+                showStatus(`✓ Backend is running! Response: ${JSON.stringify(data)}`, 'success');
+                showResults(`Connection test: SUCCESS - ${JSON.stringify(data)}`);
+            } catch (error) {
+                showStatus(`✗ Cannot connect to backend: ${error.message}`, 'error');
+                showResults(`Connection test: FAILED - ${error.message}`);
+            }
+        }
+
+        async function testLogin() {
+            showStatus('Testing login...', 'info');
+            try {
+                const formData = new FormData();
+                formData.append('username', 'admin@campus.edu');
+                formData.append('password', 'admin123');
+
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus(`✓ Login successful! Role: ${data.role}`, 'success');
+                    showResults(`Login test: SUCCESS - Token received, Role: ${data.role}`);
+                } else {
+                    showStatus(`✗ Login failed: ${data.detail}`, 'error');
+                    showResults(`Login test: FAILED - ${data.detail}`);
+                }
+            } catch (error) {
+                showStatus(`✗ Login request failed: ${error.message}`, 'error');
+                showResults(`Login test: ERROR - ${error.message}`);
+            }
+        }
+
+        async function testCORS() {
+            showStatus('Testing CORS...', 'info');
+            try {
+                const response = await fetch(`${API_URL}/`, {
+                    method: 'OPTIONS'
+                });
+                showStatus(`✓ CORS is configured correctly`, 'success');
+                showResults(`CORS test: SUCCESS`);
+            } catch (error) {
+                showStatus(`✗ CORS test failed: ${error.message}`, 'error');
+                showResults(`CORS test: FAILED - ${error.message}`);
+            }
+        }
+
+        // Auto-test connection on load
+        window.addEventListener('load', () => {
+            setTimeout(testConnection, 500);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Campus Data Automation</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="#" class="navbar-brand">Campus Data System</a>
+            <ul class="navbar-menu">
+                <li><a href="/admin/dashboard" class="navbar-link active">Dashboard</a></li>
+                <li><a href="/admin/upload" class="navbar-link">Upload</a></li>
+                <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
+                <li><a href="#" class="navbar-link" onclick="logout()">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h1 class="card-header">Admin Dashboard</h1>
+            <div class="card-body">
+                <p>Welcome to the Campus Data Workflow Automation System.</p>
+                <p class="mt-2">This is a placeholder for the admin dashboard. Future modules will add:</p>
+                <ul style="margin-top: 1rem; margin-left: 2rem; color: var(--text-secondary);">
+                    <li>System statistics and metrics</li>
+                    <li>Recent activity feed</li>
+                    <li>Pending approval requests</li>
+                    <li>Quick action buttons</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="grid grid-3">
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">📊 Reports</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Generate and view student reports
+                </p>
+                <a href="/admin/reports" class="btn btn-primary">View Reports</a>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">📤 Upload</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Upload files and student data
+                </p>
+                <a href="/admin/upload" class="btn btn-primary">Upload Data</a>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">👥 Students</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Manage student records
+                </p>
+                <button class="btn btn-outline" disabled>Coming Soon</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/auth.js"></script>
+    <script>
+        // Require admin role
+        requireRole('admin');
+    </script>
+</body>
+
+</html>

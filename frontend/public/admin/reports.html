@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Campus Data System</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <h2>Admin Dashboard</h2>
+            <div class="nav-links">
+                <a href="/admin/dashboard">Dashboard</a>
+                <a href="/admin/upload">Upload</a>
+                <a href="/admin/reports" class="active">Reports</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </nav>
+
+        <div class="content">
+            <h1>Student Reports</h1>
+
+            <!-- Report Selection -->
+            <div class="card">
+                <h2>Available Reports</h2>
+                <div class="form-group">
+                    <label class="form-label">Select Report Type</label>
+                    <select id="reportType" class="form-input" onchange="showReportOptions()">
+                        <option value="student-basic" selected>Student Basic Report (Register Number & Name)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Student Basic Report Options -->
+            <div id="studentBasicOptions" class="card" style="display: block;">
+                <h2>Student Basic Report Options</h2>
+                <p class="text-secondary">Generate a report with student register numbers and names, with optional empty
+                    columns for manual data entry.</p>
+
+                <div class="form-group">
+                    <label class="form-label">Department (Optional)</label>
+                    <select id="department" class="form-input">
+                        <option value="">All Departments</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                        <option value="Civil Engineering">Civil Engineering</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Electronics and Communication">Electronics and Communication</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Year (Optional)</label>
+                    <select id="year" class="form-input">
+                        <option value="">All Years</option>
+                        <option value="1">Year 1</option>
+                        <option value="2">Year 2</option>
+                        <option value="3">Year 3</option>
+                        <option value="4">Year 4</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Number of Empty Columns</label>
+                    <input type="number" id="emptyColumns" class="form-input" min="0" max="5" value="0"
+                        placeholder="Enter number of empty columns (0-5)">
+                    <small class="text-secondary">Add empty columns for manual data entry (0-5)</small>
+                </div>
+
+                <button id="generateBtn" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">
+                    Generate Report
+                </button>
+            </div>
+
+            <!-- Report Results -->
+            <div id="reportResults" class="card" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 id="reportTitle">Report Results</h2>
+                    <button class="btn btn-secondary" onclick="exportReport()">
+                        Export to CSV
+                    </button>
+                </div>
+
+                <div id="reportInfo" class="alert alert-info" style="margin-bottom: 1rem;"></div>
+
+                <div class="table-container">
+                    <table class="table" id="reportTable">
+                        <thead id="reportTableHead"></thead>
+                        <tbody id="reportTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="errorMessage"></div>
+        </div>
+    </div>
+
+    <style>
+        /* Enhanced UI Styles */
+        .card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-input {
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            transition: border-color 0.15s;
+        }
+
+        .form-input:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        #studentBasicOptions {
+            max-width: 800px;
+            margin: 0 auto 2rem auto;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
+        }
+    </style>
+
+    <script src="/scripts/auth.js"></script>
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+        let currentReportData = null;
+
+        // Check authentication
+        checkAuth();
+        requireRole('admin');
+
+        function showReportOptions() {
+            const reportType = document.getElementById('reportType').value;
+
+            // Hide all option panels
+            document.getElementById('studentBasicOptions').style.display = 'none';
+            document.getElementById('reportResults').style.display = 'none';
+            document.getElementById('errorMessage').innerHTML = '';
+
+            // Show selected report options
+            if (reportType === 'student-basic') {
+                document.getElementById('studentBasicOptions').style.display = 'block';
+            }
+        }
+
+        // Initialize event listeners
+        const generateBtn = document.getElementById('generateBtn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', generateReport);
+            console.log('Event listener attached to generateBtn');
+        } else {
+            console.error('generateBtn not found!');
+        }
+
+        async function generateReport() {
+            console.log('Generate button clicked');
+            const reportType = document.getElementById('reportType').value;
+
+            if (reportType === 'student-basic') {
+                await generateStudentBasicReport();
+            }
+        }
+
+        async function generateStudentBasicReport() {
+            const department = document.getElementById('department').value;
+            const year = document.getElementById('year').value;
+            const emptyColumns = document.getElementById('emptyColumns').value;
+            const errorDiv = document.getElementById('errorMessage');
+
+            errorDiv.innerHTML = '';
+
+            try {
+                // Build query parameters
+                const params = new URLSearchParams();
+                if (department) params.append('department', department);
+                if (year) params.append('year', year);
+                if (emptyColumns) params.append('empty_columns', emptyColumns);
+
+                // Show loading state
+                const generateBtn = document.getElementById('generateBtn');
+                const originalBtnText = generateBtn.innerHTML;
+                generateBtn.innerHTML = 'Generating... <span class="spinner"></span>';
+                generateBtn.disabled = true;
+
+                try {
+                    // Use the dedicated reports endpoint
+                    const response = await apiRequest(`/reports/student-basic?${params.toString()}`, {
+                        method: 'GET'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    currentReportData = data;
+                    displayReport(data);
+                } finally {
+                    // Restore button state
+                    generateBtn.innerHTML = originalBtnText;
+                    generateBtn.disabled = false;
+                }
+
+            } catch (error) {
+                errorDiv.innerHTML = `
+                    <div class="alert alert-error">
+                        Failed to generate report: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayReport(data) {
+            const resultsDiv = document.getElementById('reportResults');
+            const titleEl = document.getElementById('reportTitle');
+            const infoEl = document.getElementById('reportInfo');
+            const tableHead = document.getElementById('reportTableHead');
+            const tableBody = document.getElementById('reportTableBody');
+
+            // Update title
+            titleEl.textContent = data.report_name;
+
+            // Update info
+            let filterInfo = [];
+            if (data.filters.department) filterInfo.push(`Department: ${data.filters.department}`);
+            if (data.filters.year) filterInfo.push(`Year: ${data.filters.year}`);
+            if (data.filters.empty_columns > 0) filterInfo.push(`Empty Columns: ${data.filters.empty_columns}`);
+
+            infoEl.innerHTML = `
+                <strong>${data.description}</strong><br>
+                ${filterInfo.length > 0 ? 'Filters: ' + filterInfo.join(', ') + '<br>' : ''}
+                Total Records: ${data.total_records}
+            `;
+
+            // Build table headers
+            let headerHTML = '<tr>';
+            data.headers.forEach(header => {
+                headerHTML += `<th>${header}</th>`;
+            });
+            headerHTML += '</tr>';
+            tableHead.innerHTML = headerHTML;
+
+            // Build table body
+            let bodyHTML = '';
+            data.data.forEach(row => {
+                bodyHTML += '<tr>';
+                bodyHTML += `<td>${row.register_number}</td>`;
+                bodyHTML += `<td>${row.name}</td>`;
+
+                // Add empty columns
+                for (let i = 1; i <= data.filters.empty_columns; i++) {
+                    bodyHTML += `<td class="text-secondary">-</td>`;
+                }
+
+                bodyHTML += '</tr>';
+            });
+            tableBody.innerHTML = bodyHTML;
+
+            // Show results
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function exportReport() {
+            if (!currentReportData) {
+                alert('No report data to export');
+                return;
+            }
+
+            // Build CSV content
+            let csv = '';
+
+            // Add headers
+            csv += currentReportData.headers.join(',') + '\n';
+
+            // Add data rows
+            currentReportData.data.forEach(row => {
+                let rowData = [row.register_number, row.name];
+
+                // Add empty columns
+                for (let i = 1; i <= currentReportData.filters.empty_columns; i++) {
+                    rowData.push('');
+                }
+
+                csv += rowData.join(',') + '\n';
+            });
+
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `student_basic_report_${new Date().getTime()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+
+</html>

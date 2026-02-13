@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Campus Data Automation</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-title">Campus Data System</h1>
+                <p class="login-subtitle">Sign in to your account</p>
+            </div>
+
+            <div id="errorMessage"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="your.email@campus.edu" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-2 text-center" style="color: var(--text-secondary); font-size: 0.875rem;">
+                <p>Demo Credentials:</p>
+                <p><strong>Admin:</strong> admin@campus.edu / admin123</p>
+                <p><strong>Student:</strong> student@campus.edu / student123</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+
+            // Clear previous errors
+            errorDiv.innerHTML = '';
+
+            try {
+                // Create form data
+                const formData = new FormData();
+                formData.append('username', email);  // OAuth2 uses 'username' field
+                formData.append('password', password);
+
+                // Make login request
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Login failed');
+                }
+
+                // Store token and role
+                localStorage.setItem('token', data.access_token);
+                localStorage.setItem('role', data.role);
+
+                // Redirect based on role
+                if (data.role === 'admin' || data.role === 'staff') {
+                    window.location.href = '/admin/dashboard';
+                } else if (data.role === 'student') {
+                    window.location.href = '/student/dashboard';
+                } else {
+                    throw new Error('Unknown role');
+                }
+
+            } catch (error) {
+                errorDiv.innerHTML = `
+                    <div class="alert alert-error">
+                        ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        // Redirect if already logged in
+        if (localStorage.getItem('token')) {
+            const role = localStorage.getItem('role');
+            if (role === 'admin' || role === 'staff') {
+                window.location.href = '/admin/dashboard';
+            } else if (role === 'student') {
+                window.location.href = '/student/dashboard';
+            }
+        }
+    </script>
+</body>
+
+</html>

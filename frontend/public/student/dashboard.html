@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Campus Data Automation</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="#" class="navbar-brand">Campus Data System</a>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="navbar-link active">Dashboard</a></li>
+                <li><a href="#" class="navbar-link" onclick="logout()">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="margin-bottom: 2rem;">Student Dashboard</h1>
+
+        <div id="loadingContainer" class="flex-center" style="min-height: 200px;">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="profileContainer" style="display: none;"></div>
+    </div>
+
+    <script src="../../scripts/auth.js"></script>
+    <script>
+        // Require student role
+        requireRole('student');
+
+        // Load student profile on page load
+        loadStudentProfile();
+
+        async function loadStudentProfile() {
+            try {
+                const data = await apiRequestJSON('/student/profile');
+                displayProfile(data);
+            } catch (error) {
+                document.getElementById('loadingContainer').innerHTML = `
+                    <div class="alert alert-error">
+                        Failed to load profile: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayProfile(data) {
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('profileContainer').style.display = 'block';
+
+            const profileHTML = `
+                <div class="card">
+                    <h2 class="card-header">My Profile</h2>
+                    <div class="card-body">
+                        <div class="grid grid-2">
+                            <div>
+                                <p style="margin-bottom: 1rem;">
+                                    <strong>Student ID:</strong><br>
+                                    ${data.student_id}
+                                </p>
+                                <p style="margin-bottom: 1rem;">
+                                    <strong>Name:</strong><br>
+                                    ${data.name}
+                                </p>
+                                <p style="margin-bottom: 1rem;">
+                                    <strong>Email:</strong><br>
+                                    ${data.email}
+                                </p>
+                            </div>
+                            <div>
+                                <p style="margin-bottom: 1rem;">
+                                    <strong>Department:</strong><br>
+                                    ${data.department || 'Not specified'}
+                                </p>
+                                <p style="margin-bottom: 1rem;">
+                                    <strong>Year:</strong><br>
+                                    ${data.year || 'Not specified'}
+                                </p>
+                                <p style="margin-bottom: 1rem;">
+                                    <strong>Phone:</strong><br>
+                                    ${data.phone || 'Not specified'}
+                                </p>
+                            </div>
+                        </div>
+
+                        ${data.address ? `
+                            <p style="margin-top: 1rem;">
+                                <strong>Address:</strong><br>
+                                ${data.address}
+                            </p>
+                        ` : ''}
+
+                        <div class="alert alert-info mt-2">
+                            <strong>Note:</strong> This is a read-only view. To update your information, 
+                            submit an update request (coming in Module 3).
+                        </div>
+                    </div>
+                </div>
+
+                ${data.documents && data.documents.length > 0 ? `
+                    <div class="card">
+                        <h2 class="card-header">My Documents</h2>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>File Type</th>
+                                        <th>File Name</th>
+                                        <th>Uploaded At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.documents.map(doc => `
+                                        <tr>
+                                            <td>${doc.file_type}</td>
+                                            <td>${doc.file_name}</td>
+                                            <td>${formatDate(doc.uploaded_at)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="card">
+                        <h2 class="card-header">My Documents</h2>
+                        <div class="card-body">
+                            <p style="color: var(--text-secondary);">No documents uploaded yet.</p>
+                        </div>
+                    </div>
+                `}
+
+                <div class="card">
+                    <h2 class="card-header">Quick Actions</h2>
+                    <div class="card-body">
+                        <div class="grid grid-3">
+                            <button class="btn btn-outline" disabled>
+                                Request Update<br>
+                                <small style="font-weight: normal;">(Module 3)</small>
+                            </button>
+                            <button class="btn btn-outline" disabled>
+                                View History<br>
+                                <small style="font-weight: normal;">(Module 3)</small>
+                            </button>
+                            <button class="btn btn-outline" disabled>
+                                Upload Document<br>
+                                <small style="font-weight: normal;">(Future)</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('profileContainer').innerHTML = profileHTML;
+        }
+    </script>
+</body>
+
+</html>

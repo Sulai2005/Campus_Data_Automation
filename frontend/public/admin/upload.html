@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - Campus Data Automation</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="#" class="navbar-brand">Campus Data System</a>
+            <ul class="navbar-menu">
+                <li><a href="/admin/dashboard" class="navbar-link">Dashboard</a></li>
+                <li><a href="/admin/upload" class="navbar-link active">Upload</a></li>
+                <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
+                <li><a href="#" class="navbar-link" onclick="logout()">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="margin-bottom: 2rem;">Upload Files & Data</h1>
+
+        <div id="messageContainer"></div>
+
+        <!-- File Upload Section -->
+        <div class="card">
+            <h2 class="card-header">Upload Student Document</h2>
+            <div class="card-body">
+                <form id="fileUploadForm">
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="studentId" class="form-label">Student ID</label>
+                            <input type="number" id="studentId" class="form-input"
+                                placeholder="Enter student database ID" required>
+                            <small style="color: var(--text-secondary);">
+                                Note: Use the database ID (e.g., 1, 2, 3), not student_id
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileType" class="form-label">File Type</label>
+                            <select id="fileType" class="form-select" required>
+                                <option value="">Select type...</option>
+                                <option value="photo">Photo</option>
+                                <option value="certificate">Certificate</option>
+                                <option value="id_proof">ID Proof</option>
+                                <option value="transcript">Transcript</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="file" class="form-label">Select File</label>
+                        <input type="file" id="file" class="form-input" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                            required>
+                        <small style="color: var(--text-secondary);">
+                            Allowed: JPG, PNG, PDF, DOC, DOCX (Max 5MB)
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Upload File
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bulk Data Upload Section (Placeholder) -->
+        <div class="card">
+            <h2 class="card-header">Bulk Data Upload</h2>
+            <div class="card-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Upload CSV or Excel files to import multiple student records.
+                </p>
+
+                <div class="form-group">
+                    <label for="bulkFile" class="form-label">Select CSV/Excel File</label>
+                    <input type="file" id="bulkFile" class="form-input" accept=".csv,.xlsx,.xls" disabled>
+                </div>
+
+                <button class="btn btn-outline" disabled>
+                    Coming in Module 5
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../scripts/auth.js"></script>
+    <script>
+        // Require admin role
+        requireRole('admin');
+
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+        const fileUploadForm = document.getElementById('fileUploadForm');
+        const messageContainer = document.getElementById('messageContainer');
+
+        fileUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const studentId = document.getElementById('studentId').value;
+            const fileType = document.getElementById('fileType').value;
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showMessage('Please select a file', 'error');
+                return;
+            }
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('student_id', studentId);
+            formData.append('file_type', fileType);
+
+            try {
+                const token = getToken();
+                const response = await fetch(`${API_BASE_URL}/admin/upload/file`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Upload failed');
+                }
+
+                showMessage('File uploaded successfully!', 'success');
+                fileUploadForm.reset();
+
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        });
+
+        function showMessage(message, type) {
+            messageContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+
+</html>
