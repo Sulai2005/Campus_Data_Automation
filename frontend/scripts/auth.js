@@ -2,7 +2,7 @@
  * Authentication utilities and API helpers
  */
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 /**
  * Get JWT token from localStorage
@@ -60,14 +60,14 @@ function logout() {
  */
 async function apiRequest(endpoint, options = {}) {
     const token = getToken();
-    
+
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
             ...(token && { 'Authorization': `Bearer ${token}` })
         }
     };
-    
+
     const mergedOptions = {
         ...defaultOptions,
         ...options,
@@ -76,22 +76,22 @@ async function apiRequest(endpoint, options = {}) {
             ...options.headers
         }
     };
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, mergedOptions);
-        
+
         // Handle 401 Unauthorized
         if (response.status === 401) {
             removeToken();
             window.location.href = '/public/login.html';
             throw new Error('Unauthorized');
         }
-        
+
         // Handle 403 Forbidden
         if (response.status === 403) {
             throw new Error('Access denied');
         }
-        
+
         return response;
     } catch (error) {
         console.error('API request failed:', error);
@@ -135,12 +135,12 @@ function showAlert(message, type = 'info') {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type}`;
     alertDiv.textContent = message;
-    
+
     // Insert at top of container
     const container = document.querySelector('.container');
     if (container) {
         container.insertBefore(alertDiv, container.firstChild);
-        
+
         // Auto-remove after 5 seconds
         setTimeout(() => {
             alertDiv.remove();

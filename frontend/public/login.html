@@ -4,40 +4,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Campus Data Automation</title>
+    <title>Login - University Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css">
 </head>
 
-<body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <h1 class="login-title">Campus Data System</h1>
-                <p class="login-subtitle">Sign in to your account</p>
+<body class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <!-- Graduation Cap Icon -->
+            <div
+                style="background-color: var(--primary-color); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
             </div>
 
-            <div id="errorMessage"></div>
+            <h1 style="font-size: 1.5rem; color: var(--text-primary); margin-bottom: 0.5rem; font-weight: 600;">
+                University Management System</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; font-weight: 400;">Sign in to your account</p>
+        </div>
 
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
-                    <input type="email" id="email" class="form-input" placeholder="your.email@campus.edu" required>
+        <div id="errorMessage"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email" class="form-label" style="text-align: left;">Email</label>
+                <input type="email" id="email" class="form-input" placeholder="e.g. admin@university.edu" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label" style="text-align: left;">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role" class="form-label" style="text-align: left;">Select Role</label>
+                <div style="position: relative;">
+                    <select id="role" class="form-select" style="background-color: #f1f5f9; cursor: pointer;">
+                        <option value="student">Student</option>
+                        <option value="admin">Admin</option>
+                        <option value="staff">Staff</option>
+                    </select>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
-                </div>
+            <button type="submit" class="btn btn-primary"
+                style="width: 100%; margin-top: 1rem; padding: 0.875rem; font-size: 1rem;">
+                Login
+            </button>
+        </form>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    Sign In
-                </button>
-            </form>
-
-            <div class="mt-2 text-center" style="color: var(--text-secondary); font-size: 0.875rem;">
-                <p>Demo Credentials:</p>
-                <p><strong>Admin:</strong> admin@campus.edu / admin123</p>
-                <p><strong>Student:</strong> student@campus.edu / student123</p>
+        <div class="mt-4"
+            style="text-align: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 2rem;">
+            <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">For Demo Purposes:</p>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                <strong>Admin:</strong> admin@campus.edu / admin123
             </div>
         </div>
     </div>
@@ -50,18 +79,24 @@
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('errorMessage');
+            // The role is visually selected but backend determines actual role. 
+            // We can perhaps validate it client side if we wanted, but for now we'll just login.
+            const selectedRole = document.getElementById('role').value;
 
-            // Clear previous errors
+            const errorDiv = document.getElementById('errorMessage');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
             errorDiv.innerHTML = '';
 
+            const originalText = submitBtn.innerText;
+            submitBtn.innerHTML = 'Signing in...';
+            submitBtn.disabled = true;
+
             try {
-                // Create form data
                 const formData = new FormData();
-                formData.append('username', email);  // OAuth2 uses 'username' field
+                formData.append('username', email);
                 formData.append('password', password);
 
-                // Make login request
                 const response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: 'POST',
                     body: formData
@@ -70,28 +105,37 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'Login failed');
+                    throw new Error(data.detail || 'Login failed. Please check your credentials.');
                 }
 
-                // Store token and role
+                // Verify if the role matches strictly if we wanted to enforce the dropdown selection
+                if (data.role.toLowerCase() !== selectedRole.toLowerCase()) {
+                    // Optional: Warning or Error if they selected wrong role
+                    // For now, we'll just log it or allow it, as the token is valid for the user
+                    console.warn(`User selected ${selectedRole} but is actually ${data.role}`);
+                }
+
                 localStorage.setItem('token', data.access_token);
                 localStorage.setItem('role', data.role);
 
-                // Redirect based on role
+                // Redirect based on ACTUAL role from backend
                 if (data.role === 'admin' || data.role === 'staff') {
                     window.location.href = '/admin/dashboard';
                 } else if (data.role === 'student') {
                     window.location.href = '/student/dashboard';
                 } else {
-                    throw new Error('Unknown role');
+                    throw new Error('Unknown user role');
                 }
 
             } catch (error) {
+                console.error("Login failed:", error);
                 errorDiv.innerHTML = `
-                    <div class="alert alert-error">
+                    <div class="alert alert-error" style="text-align: center; font-size: 0.9rem;">
                         ${error.message}
                     </div>
                 `;
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         });
 

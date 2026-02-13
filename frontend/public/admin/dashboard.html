@@ -4,69 +4,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Campus Data Automation</title>
+    <title>Admin Dashboard - University Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        .navbar-user {
+            position: relative;
+        }
+    </style>
 </head>
 
 <body>
     <nav class="navbar">
         <div class="navbar-content">
-            <a href="#" class="navbar-brand">Campus Data System</a>
-            <ul class="navbar-menu">
-                <li><a href="/admin/dashboard" class="navbar-link active">Dashboard</a></li>
-                <li><a href="/admin/upload" class="navbar-link">Upload</a></li>
-                <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
-                <li><a href="#" class="navbar-link" onclick="logout()">Logout</a></li>
-            </ul>
+            <a href="/admin/dashboard" class="navbar-brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                University Management System
+            </a>
+
+            <div class="navbar-right">
+                <ul class="navbar-menu">
+                    <li><a href="/admin/dashboard" class="navbar-link active">Dashboard</a></li>
+                    <li><a href="/admin/upload" class="navbar-link">Upload</a></li>
+                    <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
+                </ul>
+
+                <!-- User Profile Dropdown -->
+                <div class="navbar-user" id="userMenu">
+                    <button class="user-menu-btn" onclick="toggleUserMenu()">
+                        <div class="user-avatar">A</div>
+                        <div class="user-info">
+                            <span class="user-name">Administrator</span>
+                            <span class="user-role">Admin</span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="#" class="dropdown-item">My Profile</a>
+                        <a href="#" class="dropdown-item">Settings</a>
+                        <div style="border-top: 1px solid var(--border-color); margin: 0.25rem 0;"></div>
+                        <a href="#" class="dropdown-item danger" onclick="logout()">Logout</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
     <div class="container">
-        <div class="card">
-            <h1 class="card-header">Admin Dashboard</h1>
-            <div class="card-body">
-                <p>Welcome to the Campus Data Workflow Automation System.</p>
-                <p class="mt-2">This is a placeholder for the admin dashboard. Future modules will add:</p>
-                <ul style="margin-top: 1rem; margin-left: 2rem; color: var(--text-secondary);">
-                    <li>System statistics and metrics</li>
-                    <li>Recent activity feed</li>
-                    <li>Pending approval requests</li>
-                    <li>Quick action buttons</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="grid grid-3">
-            <div class="card">
-                <h3 style="margin-bottom: 1rem;">📊 Reports</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                    Generate and view student reports
-                </p>
-                <a href="/admin/reports" class="btn btn-primary">View Reports</a>
+        <div class="card mb-4" id="dashboard-content">
+            <div class="card-header" style="background: white; border-bottom: none; padding-bottom: 0;">
+                <h1>Admin Dashboard</h1>
+                <p>Welcome back, Administrator.</p>
             </div>
 
-            <div class="card">
-                <h3 style="margin-bottom: 1rem;">📤 Upload</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                    Upload files and student data
-                </p>
-                <a href="/admin/upload" class="btn btn-primary">Upload Data</a>
-            </div>
+            <div class="grid grid-3" style="margin-top: 1rem;">
+                <div class="card" style="border-top: 4px solid var(--primary-light); padding: 1.5rem;">
+                    <h3>📊 Reports</h3>
+                    <p style="font-size: 0.9rem;">Generate and download student reports.</p>
+                    <a href="/admin/reports" class="btn btn-primary" style="width: 100%; justify-content: center;">View
+                        Reports</a>
+                </div>
 
-            <div class="card">
-                <h3 style="margin-bottom: 1rem;">👥 Students</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                    Manage student records
-                </p>
-                <button class="btn btn-outline" disabled>Coming Soon</button>
+                <div class="card" style="border-top: 4px solid var(--success-color); padding: 1.5rem;">
+                    <h3>📤 Upload Data</h3>
+                    <p style="font-size: 0.9rem;">Upload student records via CSV/Excel.</p>
+                    <a href="/admin/upload" class="btn btn-primary" style="width: 100%; justify-content: center;">Upload
+                        Now</a>
+                </div>
+
+                <div class="card" style="border-top: 4px solid var(--secondary-color); padding: 1.5rem; opacity: 0.7;">
+                    <h3>👥 Students</h3>
+                    <p style="font-size: 0.9rem;">Manage individual student profiles.</p>
+                    <button class="btn btn-secondary" style="width: 100%; cursor: not-allowed;" disabled>Coming
+                        Soon</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="/scripts/auth.js"></script>
     <script>
-        // Require admin role
+        requireAuth();
         requireRole('admin');
+
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('userMenu');
+            // Check if click was inside user menu button or dropdown
+            const btn = document.querySelector('.user-menu-btn');
+
+            if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.remove('active');
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            window.location.href = '/';
+        }
     </script>
 </body>
 

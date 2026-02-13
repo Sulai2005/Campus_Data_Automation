@@ -4,89 +4,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports - Campus Data System</title>
+    <title>Reports - University Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css">
+    <!-- Inline CSS override if needed, but main.css should handle it -->
+    <style>
+        .navbar-user {
+            position: relative;
+        }
+
+        /* Ensure dropdown anchors here */
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <nav class="navbar">
-            <h2>Admin Dashboard</h2>
-            <div class="nav-links">
-                <a href="/admin/dashboard">Dashboard</a>
-                <a href="/admin/upload">Upload</a>
-                <a href="/admin/reports" class="active">Reports</a>
-                <a href="#" onclick="logout()">Logout</a>
-            </div>
-        </nav>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/admin/dashboard" class="navbar-brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                University Management System
+            </a>
 
-        <div class="content">
-            <h1>Student Reports</h1>
+            <div class="navbar-right">
+                <ul class="navbar-menu">
+                    <li><a href="/admin/dashboard" class="navbar-link">Dashboard</a></li>
+                    <li><a href="/admin/upload" class="navbar-link">Upload</a></li>
+                    <li><a href="/admin/reports" class="navbar-link active">Reports</a></li>
+                </ul>
 
-            <!-- Report Selection -->
-            <div class="card">
-                <h2>Available Reports</h2>
-                <div class="form-group">
-                    <label class="form-label">Select Report Type</label>
-                    <select id="reportType" class="form-input" onchange="showReportOptions()">
-                        <option value="student-basic" selected>Student Basic Report (Register Number & Name)</option>
-                    </select>
+                <!-- User Profile Dropdown -->
+                <div class="navbar-user" id="userMenu">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <div class="user-avatar">A</div>
+                        <div class="user-info">
+                            <span class="user-name">Administrator</span>
+                            <span class="user-role">Admin</span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="#" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            My Profile
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                </path>
+                            </svg>
+                            Settings
+                        </a>
+                        <div style="border-top: 1px solid var(--border-color); margin: 0.25rem 0;"></div>
+                        <a href="#" class="dropdown-item danger" id="logoutBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card mb-4" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-header">
+                <h2>Generate Reports</h2>
+                <p>Select criteria to download student data.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Report Type</label>
+                <select id="reportType" class="form-select">
+                    <option value="student-basic" selected>Student Register Number & Name List</option>
+                </select>
             </div>
 
             <!-- Student Basic Report Options -->
-            <div id="studentBasicOptions" class="card" style="display: block;">
-                <h2>Student Basic Report Options</h2>
-                <p class="text-secondary">Generate a report with student register numbers and names, with optional empty
-                    columns for manual data entry.</p>
+            <div id="studentBasicOptions">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select id="department" class="form-select">
+                            <option value="">All Departments</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Electrical Engineering">Electrical Engineering</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Electronics and Communication">Electronics and Communication</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label class="form-label">Department (Optional)</label>
-                    <select id="department" class="form-input">
-                        <option value="">All Departments</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Electrical Engineering">Electrical Engineering</option>
-                        <option value="Mechanical Engineering">Mechanical Engineering</option>
-                        <option value="Civil Engineering">Civil Engineering</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Electronics and Communication">Electronics and Communication</option>
-                    </select>
+                    <div class="form-group">
+                        <label class="form-label">Year</label>
+                        <select id="year" class="form-select">
+                            <option value="">All Years</option>
+                            <option value="1">Year 1</option>
+                            <option value="2">Year 2</option>
+                            <option value="3">Year 3</option>
+                            <option value="4">Year 4</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Year (Optional)</label>
-                    <select id="year" class="form-input">
-                        <option value="">All Years</option>
-                        <option value="1">Year 1</option>
-                        <option value="2">Year 2</option>
-                        <option value="3">Year 3</option>
-                        <option value="4">Year 4</option>
-                    </select>
+                    <label class="form-label">Extra Empty Columns (for manual entry)</label>
+                    <input type="number" id="emptyColumns" class="form-input" min="0" max="5" value="0" placeholder="0">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Number of Empty Columns</label>
-                    <input type="number" id="emptyColumns" class="form-input" min="0" max="5" value="0"
-                        placeholder="Enter number of empty columns (0-5)">
-                    <small class="text-secondary">Add empty columns for manual data entry (0-5)</small>
-                </div>
+                <div id="mainErrorContainer"></div>
 
-                <button id="generateBtn" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">
+                <button id="generateBtn" class="btn btn-primary" style="width: 100%;">
                     Generate Report
                 </button>
             </div>
+        </div>
+    </div>
 
-            <!-- Report Results -->
-            <div id="reportResults" class="card" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 id="reportTitle">Report Results</h2>
-                    <button class="btn btn-secondary" onclick="exportReport()">
-                        Export to CSV
-                    </button>
+    <!-- Report Preview Modal -->
+    <div id="reportModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="reportTitle">Report Generated</h3>
+                    <p id="reportSubtitle" style="margin-bottom: 0; font-size: 0.85rem; color: var(--text-secondary);">
+                    </p>
                 </div>
+                <button class="modal-close" onclick="closeModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
 
-                <div id="reportInfo" class="alert alert-info" style="margin-bottom: 1rem;"></div>
-
+            <div class="modal-body">
                 <div class="table-container">
                     <table class="table" id="reportTable">
                         <thead id="reportTableHead"></thead>
@@ -95,105 +168,107 @@
                 </div>
             </div>
 
-            <div id="errorMessage"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn btn-primary" id="downloadBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download CSV
+                </button>
+            </div>
         </div>
     </div>
 
-    <style>
-        /* Enhanced UI Styles */
-        .card {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e5e7eb;
-            transition: transform 0.2s;
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .form-input {
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            padding: 0.75rem;
-            font-size: 0.95rem;
-            transition: border-color 0.15s;
-        }
-
-        .form-input:focus {
-            border-color: #2563eb;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        #studentBasicOptions {
-            max-width: 800px;
-            margin: 0 auto 2rem auto;
-        }
-
-        .btn-primary {
-            background: linear-gradient(to right, #2563eb, #1d4ed8);
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-            font-weight: 600;
-            letter-spacing: 0.025em;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
-        }
-    </style>
-
+    <!-- Script loading -->
     <script src="/scripts/auth.js"></script>
+
     <script>
-        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+        // Store report data globally
         let currentReportData = null;
 
-        // Check authentication
-        checkAuth();
-        requireRole('admin');
-
-        function showReportOptions() {
-            const reportType = document.getElementById('reportType').value;
-
-            // Hide all option panels
-            document.getElementById('studentBasicOptions').style.display = 'none';
-            document.getElementById('reportResults').style.display = 'none';
-            document.getElementById('errorMessage').innerHTML = '';
-
-            // Show selected report options
-            if (reportType === 'student-basic') {
-                document.getElementById('studentBasicOptions').style.display = 'block';
-            }
-        }
-
-        // Initialize event listeners
-        const generateBtn = document.getElementById('generateBtn');
-        if (generateBtn) {
-            generateBtn.addEventListener('click', generateReport);
-            console.log('Event listener attached to generateBtn');
+        // Ensure auth check runs
+        if (typeof requireAuth === 'function') {
+            requireAuth();
+            requireRole('admin');
         } else {
-            console.error('generateBtn not found!');
+            console.error("Auth functions not loaded");
+            window.location.href = '/';
         }
 
-        async function generateReport() {
-            console.log('Generate button clicked');
-            const reportType = document.getElementById('reportType').value;
+        // Wait for DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Reports page DOM loaded");
 
-            if (reportType === 'student-basic') {
-                await generateStudentBasicReport();
+            // --- User Menu Logic ---
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userMenu = document.getElementById('userMenu');
+
+            if (userMenuBtn) {
+                userMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent document click from closing it immediately
+                    userMenu.classList.toggle('active');
+                    console.log("User menu toggled");
+                });
             }
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (userMenu && !userMenu.contains(e.target)) {
+                    userMenu.classList.remove('active');
+                }
+            });
+
+            // Logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (typeof logout === 'function') {
+                        logout();
+                    } else {
+                        // Fallback
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('role');
+                        window.location.href = '/';
+                    }
+                })
+            }
+
+            // --- Report Generation Logic ---
+            const generateBtn = document.getElementById('generateBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            if (generateBtn) {
+                generateBtn.addEventListener('click', handleGenerateReport);
+            } else {
+                console.error("Generate button NOT found in DOM");
+            }
+
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', exportReport);
+            }
+        });
+
+        function closeModal() {
+            const modal = document.getElementById('reportModal');
+            modal.classList.remove('active');
+            // Wait for transition then hide completely (handled by CSS visibility)
         }
 
-        async function generateStudentBasicReport() {
+        async function handleGenerateReport() {
+            console.log("Generate Report Triggered");
             const department = document.getElementById('department').value;
             const year = document.getElementById('year').value;
             const emptyColumns = document.getElementById('emptyColumns').value;
-            const errorDiv = document.getElementById('errorMessage');
+            const errorDiv = document.getElementById('mainErrorContainer');
+            const generateBtn = document.getElementById('generateBtn');
 
-            errorDiv.innerHTML = '';
+            // Clear errors
+            if (errorDiv) errorDiv.innerHTML = '';
 
             try {
                 // Build query parameters
@@ -203,63 +278,76 @@
                 if (emptyColumns) params.append('empty_columns', emptyColumns);
 
                 // Show loading state
-                const generateBtn = document.getElementById('generateBtn');
                 const originalBtnText = generateBtn.innerHTML;
-                generateBtn.innerHTML = 'Generating... <span class="spinner"></span>';
+                generateBtn.innerHTML = 'Generating...';
                 generateBtn.disabled = true;
 
                 try {
-                    // Use the dedicated reports endpoint
-                    const response = await apiRequest(`/reports/student-basic?${params.toString()}`, {
+                    // Normalize API Endpoint
+                    // If API_BASE_URL is 'http://127.0.0.1:8000/api', we just append endpoint
+                    // If it ends with slash, handle it.
+                    // auth.js defines API_BASE_URL (currently 'http://127.0.0.1:8000/api')
+
+                    const endpoint = `/reports/student-basic?${params.toString()}`;
+                    console.log(`Fetching from: ${API_BASE_URL}${endpoint}`);
+
+                    const response = await apiRequest(endpoint, {
                         method: 'GET'
                     });
 
                     if (!response.ok) {
-                        throw new Error(`Error: ${response.statusText}`);
+                        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
                     }
 
                     const data = await response.json();
+                    console.log("Data received:", data);
 
                     currentReportData = data;
-                    displayReport(data);
+
+                    // Show Modal with Data
+                    displayReportModal(data);
+
+                } catch (fetchError) {
+                    console.error("Fetch error:", fetchError);
+                    throw fetchError;
                 } finally {
-                    // Restore button state
                     generateBtn.innerHTML = originalBtnText;
                     generateBtn.disabled = false;
                 }
 
             } catch (error) {
-                errorDiv.innerHTML = `
-                    <div class="alert alert-error">
-                        Failed to generate report: ${error.message}
-                    </div>
-                `;
+                console.error("Report process failed:", error);
+                if (errorDiv) {
+                    errorDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            Failed: ${error.message}
+                        </div>
+                    `;
+                } else {
+                    alert(`Failed: ${error.message}`);
+                }
             }
         }
 
-        function displayReport(data) {
-            const resultsDiv = document.getElementById('reportResults');
+        function displayReportModal(data) {
+            const modal = document.getElementById('reportModal');
             const titleEl = document.getElementById('reportTitle');
-            const infoEl = document.getElementById('reportInfo');
+            const subtitleEl = document.getElementById('reportSubtitle');
             const tableHead = document.getElementById('reportTableHead');
             const tableBody = document.getElementById('reportTableBody');
 
-            // Update title
+            // Update Header
             titleEl.textContent = data.report_name;
 
-            // Update info
             let filterInfo = [];
-            if (data.filters.department) filterInfo.push(`Department: ${data.filters.department}`);
-            if (data.filters.year) filterInfo.push(`Year: ${data.filters.year}`);
-            if (data.filters.empty_columns > 0) filterInfo.push(`Empty Columns: ${data.filters.empty_columns}`);
+            if (data.filters.department) filterInfo.push(data.filters.department);
+            if (data.filters.year) filterInfo.push(`Year ${data.filters.year}`);
 
-            infoEl.innerHTML = `
-                <strong>${data.description}</strong><br>
-                ${filterInfo.length > 0 ? 'Filters: ' + filterInfo.join(', ') + '<br>' : ''}
-                Total Records: ${data.total_records}
-            `;
+            const filterText = filterInfo.length > 0 ? filterInfo.join(', ') : 'All Students';
+            subtitleEl.textContent = `${filterText} • ${data.total_records} Records Found`;
 
-            // Build table headers
+            // Update Table
+            // Headers
             let headerHTML = '<tr>';
             data.headers.forEach(header => {
                 headerHTML += `<th>${header}</th>`;
@@ -267,25 +355,35 @@
             headerHTML += '</tr>';
             tableHead.innerHTML = headerHTML;
 
-            // Build table body
+            // Body
             let bodyHTML = '';
-            data.data.forEach(row => {
-                bodyHTML += '<tr>';
-                bodyHTML += `<td>${row.register_number}</td>`;
-                bodyHTML += `<td>${row.name}</td>`;
+            if (data.data.length === 0) {
+                bodyHTML = `<tr><td colspan="${data.headers.length}" class="text-center" style="padding: 2rem; color: var(--text-secondary);">No records found matching criteria.</td></tr>`;
+            } else {
+                // Limit preview to first 100 rows for performance in modal
+                const previewData = data.data.slice(0, 100);
 
-                // Add empty columns
-                for (let i = 1; i <= data.filters.empty_columns; i++) {
-                    bodyHTML += `<td class="text-secondary">-</td>`;
+                previewData.forEach(row => {
+                    bodyHTML += '<tr>';
+                    bodyHTML += `<td><strong>${row.register_number}</strong></td>`;
+                    bodyHTML += `<td>${row.name}</td>`;
+
+                    // Add empty columns
+                    for (let i = 1; i <= data.filters.empty_columns; i++) {
+                        bodyHTML += `<td style="background:#f8fafc; border-left:1px dashed #e2e8f0;"></td>`;
+                    }
+
+                    bodyHTML += '</tr>';
+                });
+
+                if (data.data.length > 100) {
+                    bodyHTML += `<tr><td colspan="${data.headers.length}" class="text-center" style="padding: 1rem; color: var(--text-secondary);">And ${data.data.length - 100} more records... Download CSV to see all.</td></tr>`;
                 }
-
-                bodyHTML += '</tr>';
-            });
+            }
             tableBody.innerHTML = bodyHTML;
 
-            // Show results
-            resultsDiv.style.display = 'block';
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+            // Show Modal
+            modal.classList.add('active');
         }
 
         function exportReport() {
@@ -294,40 +392,26 @@
                 return;
             }
 
-            // Build CSV content
             let csv = '';
-
-            // Add headers
             csv += currentReportData.headers.join(',') + '\n';
 
-            // Add data rows
             currentReportData.data.forEach(row => {
                 let rowData = [row.register_number, row.name];
-
-                // Add empty columns
                 for (let i = 1; i <= currentReportData.filters.empty_columns; i++) {
                     rowData.push('');
                 }
-
                 csv += rowData.join(',') + '\n';
             });
 
-            // Create download link
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `student_basic_report_${new Date().getTime()}.csv`;
+            a.download = `student_report_${new Date().toISOString().slice(0, 10)}.csv`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-        }
-
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
-            window.location.href = '/';
         }
     </script>
 </body>
