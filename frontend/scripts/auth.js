@@ -52,7 +52,7 @@ function isAuthenticated() {
 function logout() {
     removeToken();
     localStorage.removeItem('role');
-    window.location.href = '/public/login.html';
+    window.location.href = '/';
 }
 
 /**
@@ -83,7 +83,7 @@ async function apiRequest(endpoint, options = {}) {
         // Handle 401 Unauthorized
         if (response.status === 401) {
             removeToken();
-            window.location.href = '/public/login.html';
+            window.location.href = '/';
             throw new Error('Unauthorized');
         }
 
@@ -112,7 +112,7 @@ async function apiRequestJSON(endpoint, options = {}) {
  */
 function requireAuth() {
     if (!isAuthenticated()) {
-        window.location.href = '/public/login.html';
+        window.location.href = '/';
     }
 }
 
