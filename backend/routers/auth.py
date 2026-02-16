@@ -1,8 +1,9 @@
 """Authentication routes"""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from database.db import get_db
 from database.models import User
@@ -15,31 +16,42 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/login")
 def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    username: str = Form(...),
+    password: str = Form(...),
+    role: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     """
-    Authenticate user and return JWT token
+    Authenticate user and return JWT token with role validation
     
     Args:
-        form_data: OAuth2 form with username (email) and password
+        username: User email
+        password: User password
+        role: Selected role from frontend (optional but recommended)
         db: Database session
     
     Returns:
-        Access token and token type
+        Access token, token type, and user role
     
     Raises:
-        HTTPException: If credentials are invalid
+        HTTPException: If credentials are invalid or role mismatch
     """
-    # Find user by email (username field contains email)
-    user = db.query(User).filter(User.email == form_data.username).first()
+    # Find user by email
+    user = db.query(User).filter(User.email == username).first()
     
     # Verify user exists and password is correct
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Validate role if provided
+    if role and role.lower() != user.role.lower():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. This account is registered as '{user.role}', but you selected '{role}'. Please select the correct role.",
         )
     
     # Create JWT token with user info
@@ -52,7 +64,7 @@ def login(
     return {
         "access_token": token,
         "token_type": "bearer",
-        "role": user.role  # Include role for frontend routing
+        "role": user.role  # Return actual role for frontend routing
     }
 
 

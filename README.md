@@ -23,6 +23,7 @@ Then open your browser and navigate to: **http://127.0.0.1:8000**
 **Test Credentials:**
 - Admin: `admin@campus.edu` / `admin123`
 - Student: `student@campus.edu` / `student123`
+- Other Students: `john.doe@campus.edu`, `jane.smith@campus.edu`, etc. / `student123`
 
 ---
 

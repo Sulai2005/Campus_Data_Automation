@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Students - Admin Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/admin/dashboard" class="navbar-brand">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                University Management System
+            </a>
+            <div class="navbar-right">
+                <ul class="navbar-menu">
+                    <li><a href="/admin/dashboard" class="navbar-link">Dashboard</a></li>
+                    <li><a href="/admin/upload" class="navbar-link">Upload</a></li>
+                    <li><a href="/admin/students" class="navbar-link active">Students</a></li>
+                    <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
+                    <li><a href="/admin/requests" class="navbar-link">Requests</a></li>
+                </ul>
+                <div class="navbar-user">
+                    <span id="userName" style="font-weight: 500;">Admin</span>
+                    <button onclick="logout()" class="btn btn-sm btn-outline" style="margin-left: 1rem;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-section">
+            <div>
+                <h1>Manage Students</h1>
+                <p class="subtitle">View student list and manage login credentials</p>
+            </div>
+
+            <div class="filter-group">
+                <select id="deptFilter" class="form-select" onchange="loadStudents()">
+                    <option value="">All Departments</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Mechanical">Mechanical</option>
+                    <option value="Civil">Civil</option>
+                </select>
+                <select id="yearFilter" class="form-select" onchange="loadStudents()">
+                    <option value="">All Years</option>
+                    <option value="1">Year 1</option>
+                    <option value="2">Year 2</option>
+                    <option value="3">Year 3</option>
+                    <option value="4">Year 4</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Year</th>
+                            <th>Email</th>
+                            <th>Account Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center;">Loading students...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credentials Modal -->
+    <div id="credentialsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Manage Credentials</h3>
+                <button class="modal-close" onclick="closeCredentialsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    Set login credentials for <strong id="modalStudentName"></strong> (<span
+                        id="modalStudentId"></span>).
+                </p>
+                <form id="credentialsForm">
+                    <input type="hidden" id="targetStudentId">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="studentEmail" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="studentPassword" class="form-input" required minlength="6"
+                            placeholder="Enter new password">
+                        <small style="color: var(--text-secondary);">Min 6 characters</small>
+                    </div>
+                    <div id="formError" class="alert alert-error" style="display: none;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCredentialsModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitCredentials()">Save Credentials</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/auth.js"></script>
+    <script>
+        requireAuth();
+        requireRole('admin');
+
+        let currentStudents = [];
+
+        async function loadStudents() {
+            const dept = document.getElementById('deptFilter').value;
+            const year = document.getElementById('yearFilter').value;
+
+            let url = '/admin/students';
+            const params = new URLSearchParams();
+            if (dept) params.append('department', dept);
+            if (year) params.append('year', year);
+
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+
+            try {
+                const response = await apiRequest(url);
+                currentStudents = await response.json(); // Store locally
+
+                const tbody = document.getElementById('studentsTableBody');
+                tbody.innerHTML = '';
+
+                if (currentStudents.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No students found</td></tr>';
+                    return;
+                }
+
+                currentStudents.forEach(s => {
+                    const statusBadge = s.has_account
+                        ? '<span class="badge badge-success">Active</span>'
+                        : '<span class="badge badge-warning">No Login</span>';
+
+                    const row = `
+                        <tr>
+                            <td style="font-weight: 500;">${s.student_id}</td>
+                            <td>${s.name}</td>
+                            <td>${s.department || '-'}</td>
+                            <td>${s.year || '-'}</td>
+                            <td class="text-secondary">${s.email || '-'}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline" onclick="openCredentialsModal(${s.id})">
+                                    Manage Login
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Failed to load students:', error);
+                document.getElementById('studentsTableBody').innerHTML =
+                    '<tr><td colspan="7" style="text-align: center; color: var(--error-color);">Failed to load students</td></tr>';
+            }
+        }
+
+        function openCredentialsModal(studentId) {
+            const student = currentStudents.find(s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('targetStudentId').value = student.id;
+            document.getElementById('modalStudentName').textContent = student.name;
+            document.getElementById('modalStudentId').textContent = student.student_id;
+            document.getElementById('studentEmail').value = student.email || '';
+            document.getElementById('studentPassword').value = ''; // Reset password
+            document.getElementById('formError').style.display = 'none';
+
+            document.getElementById('credentialsModal').classList.add('active');
+        }
+
+        function closeCredentialsModal() {
+            document.getElementById('credentialsModal').classList.remove('active');
+        }
+
+        async function submitCredentials() {
+            const id = document.getElementById('targetStudentId').value;
+            const email = document.getElementById('studentEmail').value;
+            const password = document.getElementById('studentPassword').value;
+            const errorDiv = document.getElementById('formError');
+
+            if (!email || !password) {
+                errorDiv.textContent = 'Email and password are required';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/admin/students/${id}/credentials`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    closeCredentialsModal();
+                    loadStudents(); // Refresh list to update status
+                    alert('Credentials assigned successfully!');
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to update credentials');
+                }
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadStudents);
+    </script>
+    <style>
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+    </style>
+</body>
+
+</html>

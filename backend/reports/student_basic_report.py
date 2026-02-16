@@ -52,36 +52,45 @@ def generate_student_basic_report(
     empty_columns = max(0, min(empty_columns, 5))
     
     # Build column headers
-    headers = ["Register Number", "Name"]
+    columns = ["Register Number", "Name"]
     
     # Add empty column headers
     for i in range(empty_columns):
-        headers.append(f"Column {i + 1}")
+        columns.append(f"Column {i + 1}")
     
     # Build data rows
     rows = []
     for student in students:
         row = {
-            "register_number": student.student_id,
-            "name": student.name
+            "Register Number": student.student_id,
+            "Name": student.name
         }
         
         # Add empty columns
         for i in range(empty_columns):
-            row[f"column_{i + 1}"] = ""
+            row[f"Column {i + 1}"] = ""
         
         rows.append(row)
+    
+    # Build filter description
+    filters_desc = []
+    if department:
+        filters_desc.append(f"Department: {department}")
+    if year:
+        filters_desc.append(f"Year: {year}")
+    filter_text = " | ".join(filters_desc) if filters_desc else "No filters"
     
     # Build response
     return {
         "report_name": "Student Basic Report",
-        "description": "Student register numbers and names with optional empty columns",
+        "description": f"Student register numbers and names. Filters: {filter_text}",
+        "columns": columns,
+        "data": rows,
+        "total_records": len(rows),
         "filters": {
             "department": department,
             "year": year,
             "empty_columns": empty_columns
-        },
-        "headers": headers,
-        "total_records": len(rows),
-        "data": rows
+        }
     }
+

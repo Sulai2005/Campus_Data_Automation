@@ -9,13 +9,69 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/main.css">
-    <!-- Inline CSS override if needed, but main.css should handle it -->
     <style>
         .navbar-user {
             position: relative;
         }
 
-        /* Ensure dropdown anchors here */
+        /* Editable table cells */
+        .editable-cell {
+            cursor: text;
+            padding: 0.5rem;
+            min-height: 2rem;
+            transition: background-color 0.2s;
+        }
+
+        .editable-cell:hover {
+            background-color: #f8fafc;
+        }
+
+        .editable-cell:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: -2px;
+            background-color: white;
+        }
+
+        /* Column selector */
+        .column-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .column-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .column-checkbox:hover {
+            border-color: var(--primary-color);
+            background-color: #f8fafc;
+        }
+
+        .column-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .column-checkbox input[type="checkbox"]:checked+label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .column-checkbox label {
+            cursor: pointer;
+            margin: 0;
+            flex: 1;
+        }
     </style>
 </head>
 
@@ -23,8 +79,12 @@
     <nav class="navbar">
         <div class="navbar-content">
             <a href="/admin/dashboard" class="navbar-brand">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" />
                 </svg>
                 University Management System
@@ -39,7 +99,7 @@
 
                 <!-- User Profile Dropdown -->
                 <div class="navbar-user" id="userMenu">
-                    <button class="user-menu-btn" id="userMenuBtn">
+                    <button class="user-menu-btn" onclick="toggleUserMenu()">
                         <div class="user-avatar">A</div>
                         <div class="user-info">
                             <span class="user-name">Administrator</span>
@@ -51,34 +111,10 @@
                         </svg>
                     </button>
                     <div class="user-dropdown">
-                        <a href="#" class="dropdown-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            My Profile
-                        </a>
-                        <a href="#" class="dropdown-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path
-                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                                </path>
-                            </svg>
-                            Settings
-                        </a>
+                        <a href="#" class="dropdown-item">My Profile</a>
+                        <a href="#" class="dropdown-item">Settings</a>
                         <div style="border-top: 1px solid var(--border-color); margin: 0.25rem 0;"></div>
-                        <a href="#" class="dropdown-item danger" id="logoutBtn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                <polyline points="16 17 21 12 16 7"></polyline>
-                                <line x1="21" y1="12" x2="9" y2="12"></line>
-                            </svg>
-                            Logout
-                        </a>
+                        <a href="#" class="dropdown-item danger" onclick="logout()">Logout</a>
                     </div>
                 </div>
             </div>
@@ -89,13 +125,14 @@
         <div class="card mb-4" style="max-width: 800px; margin: 0 auto;">
             <div class="card-header">
                 <h2>Generate Reports</h2>
-                <p>Select criteria to download student data.</p>
+                <p>Select report type and criteria to view and download student data.</p>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Report Type</label>
-                <select id="reportType" class="form-select">
-                    <option value="student-basic" selected>Student Register Number & Name List</option>
+                <select id="reportType" class="form-select" onchange="handleReportTypeChange()">
+                    <option value="student-basic">Student Register Number & Name List</option>
+                    <option value="custom">Custom Report (Select Columns)</option>
                 </select>
             </div>
 
@@ -106,12 +143,7 @@
                         <label class="form-label">Department</label>
                         <select id="department" class="form-select">
                             <option value="">All Departments</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Electrical Engineering">Electrical Engineering</option>
-                            <option value="Mechanical Engineering">Mechanical Engineering</option>
-                            <option value="Civil Engineering">Civil Engineering</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Electronics and Communication">Electronics and Communication</option>
+                            <!-- Dynamically populated -->
                         </select>
                     </div>
 
@@ -131,19 +163,73 @@
                     <label class="form-label">Extra Empty Columns (for manual entry)</label>
                     <input type="number" id="emptyColumns" class="form-input" min="0" max="5" value="0" placeholder="0">
                 </div>
-
-                <div id="mainErrorContainer"></div>
-
-                <button id="generateBtn" class="btn btn-primary" style="width: 100%;">
-                    Generate Report
-                </button>
             </div>
+
+            <!-- Custom Report Options -->
+            <div id="customReportOptions" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Select Columns to Include</label>
+                    <div class="column-selector" id="columnSelector">
+                        <!-- Dynamically populated from backend -->
+                        <div
+                            style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            Loading available columns...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Filter by Department</label>
+                        <select id="customDepartment" class="form-select">
+                            <option value="">All Departments</option>
+                            <!-- Dynamically populated -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Filter by Year</label>
+                        <select id="customYear" class="form-select">
+                            <option value="">All Years</option>
+                            <option value="1">Year 1</option>
+                            <option value="2">Year 2</option>
+                            <option value="3">Year 3</option>
+                            <option value="4">Year 4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Extra Empty Columns (for manual entry)</label>
+                    <input type="number" id="customEmptyColumns" class="form-input" min="0" max="10" value="0"
+                        placeholder="0" onchange="updateCustomColumnNames()">
+                    <small style="color: var(--text-secondary); font-size: 0.85rem;">Add custom columns with editable
+                        names</small>
+                </div>
+
+                <div id="customColumnNamesContainer" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Custom Column Names</label>
+                        <div id="customColumnNamesList" style="display: grid; gap: 0.5rem;">
+                            <!-- Dynamically populated based on empty columns count -->
+                        </div>
+                        <small style="color: var(--text-secondary); font-size: 0.85rem;">Leave blank to use default
+                            names (Custom 1, Custom 2, etc.)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mainErrorContainer"></div>
+
+            <button id="generateBtn" class="btn btn-primary" style="width: 100%;">
+                Generate Report
+            </button>
         </div>
     </div>
 
     <!-- Report Preview Modal -->
     <div id="reportModal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
             <div class="modal-header">
                 <div>
                     <h3 class="modal-title" id="reportTitle">Report Generated</h3>
@@ -159,7 +245,11 @@
                 </button>
             </div>
 
-            <div class="modal-body">
+            <div class="modal-body" style="overflow: auto; max-height: 60vh;">
+                <div class="alert alert-info" style="margin-bottom: 1rem;">
+                    <strong>💡 Tip:</strong> Click on column headers or any cell to edit before downloading. All changes
+                    will be included in the CSV file.
+                </div>
                 <div class="table-container">
                     <table class="table" id="reportTable">
                         <thead id="reportTableHead"></thead>
@@ -183,235 +273,368 @@
         </div>
     </div>
 
-    <!-- Script loading -->
     <script src="/scripts/auth.js"></script>
 
     <script>
         // Store report data globally
         let currentReportData = null;
+        let editedData = {};
+        let editedHeaders = {};
+        let availableColumns = [];
+        let availableDepartments = [];
 
-        // Ensure auth check runs
-        if (typeof requireAuth === 'function') {
-            requireAuth();
-            requireRole('admin');
-        } else {
-            console.error("Auth functions not loaded");
-            window.location.href = '/';
+        // Auth check
+        requireAuth();
+        requireRole('admin');
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDepartments();
+            loadAvailableColumns();
+        });
+
+        // User menu toggle
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('active');
         }
 
-        // Wait for DOM
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Reports page DOM loaded");
-
-            // --- User Menu Logic ---
-            const userMenuBtn = document.getElementById('userMenuBtn');
-            const userMenu = document.getElementById('userMenu');
-
-            if (userMenuBtn) {
-                userMenuBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent document click from closing it immediately
-                    userMenu.classList.toggle('active');
-                    console.log("User menu toggled");
-                });
-            }
-
-            // Close menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (userMenu && !userMenu.contains(e.target)) {
-                    userMenu.classList.remove('active');
-                }
-            });
-
-            // Logout
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (typeof logout === 'function') {
-                        logout();
-                    } else {
-                        // Fallback
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('role');
-                        window.location.href = '/';
-                    }
-                })
-            }
-
-            // --- Report Generation Logic ---
-            const generateBtn = document.getElementById('generateBtn');
-            const downloadBtn = document.getElementById('downloadBtn');
-
-            if (generateBtn) {
-                generateBtn.addEventListener('click', handleGenerateReport);
-            } else {
-                console.error("Generate button NOT found in DOM");
-            }
-
-            if (downloadBtn) {
-                downloadBtn.addEventListener('click', exportReport);
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('userMenu');
+            const btn = document.querySelector('.user-menu-btn');
+            if (menu && !menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                menu.classList.remove('active');
             }
         });
 
-        function closeModal() {
-            const modal = document.getElementById('reportModal');
-            modal.classList.remove('active');
-            // Wait for transition then hide completely (handled by CSS visibility)
+        // Load departments dynamically from backend
+        async function loadDepartments() {
+            try {
+                const response = await apiRequest('/reports/departments');
+                const data = await response.json();
+
+                availableDepartments = data.departments || [];
+
+                // Populate department dropdowns
+                const deptSelect = document.getElementById('department');
+                const customDeptSelect = document.getElementById('customDepartment');
+
+                availableDepartments.forEach(dept => {
+                    const option1 = document.createElement('option');
+                    option1.value = dept;
+                    option1.textContent = dept;
+                    deptSelect.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = dept;
+                    option2.textContent = dept;
+                    customDeptSelect.appendChild(option2);
+                });
+
+                console.log('Loaded departments:', availableDepartments);
+            } catch (error) {
+                console.error('Failed to load departments:', error);
+            }
         }
 
+        // Load available columns dynamically from backend
+        async function loadAvailableColumns() {
+            try {
+                const response = await apiRequest('/reports/columns');
+                const data = await response.json();
+
+                availableColumns = data.columns || [];
+
+                // Populate column selector
+                const columnSelector = document.getElementById('columnSelector');
+                columnSelector.innerHTML = '';
+
+                availableColumns.forEach((col, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'column-checkbox';
+
+                    // Check student_id and name by default
+                    const isDefault = col.name === 'student_id' || col.name === 'name' || col.name === 'department' || col.name === 'year';
+
+                    div.innerHTML = `
+                        <input type="checkbox" id="col_${col.name}" value="${col.name}" ${isDefault ? 'checked' : ''}>
+                        <label for="col_${col.name}">${col.label}</label>
+                    `;
+
+                    columnSelector.appendChild(div);
+                });
+
+                console.log('Loaded columns:', availableColumns);
+            } catch (error) {
+                console.error('Failed to load columns:', error);
+                document.getElementById('columnSelector').innerHTML =
+                    '<div style="grid-column: 1/-1; text-align: center; color: var(--error-color);">Failed to load columns</div>';
+            }
+        }
+
+        // Handle report type change
+        function handleReportTypeChange() {
+            const reportType = document.getElementById('reportType').value;
+            const basicOptions = document.getElementById('studentBasicOptions');
+            const customOptions = document.getElementById('customReportOptions');
+
+            if (reportType === 'custom') {
+                basicOptions.style.display = 'none';
+                customOptions.style.display = 'block';
+            } else {
+                basicOptions.style.display = 'block';
+                customOptions.style.display = 'none';
+            }
+        }
+
+        // Generate report button
+        document.getElementById('generateBtn').addEventListener('click', handleGenerateReport);
+
         async function handleGenerateReport() {
-            console.log("Generate Report Triggered");
+            const reportType = document.getElementById('reportType').value;
+
+            if (reportType === 'custom') {
+                await generateCustomReport();
+            } else {
+                await generateBasicReport();
+            }
+        }
+
+        // Update custom column names inputs based on empty columns count
+        function updateCustomColumnNames() {
+            const count = parseInt(document.getElementById('customEmptyColumns').value) || 0;
+            const container = document.getElementById('customColumnNamesContainer');
+            const list = document.getElementById('customColumnNamesList');
+
+            if (count > 0) {
+                container.style.display = 'block';
+                list.innerHTML = '';
+
+                for (let i = 0; i < count; i++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'form-input';
+                    input.id = `customColName${i}`;
+                    input.placeholder = `Custom ${i + 1}`;
+                    input.style.marginBottom = '0.5rem';
+                    list.appendChild(input);
+                }
+            } else {
+                container.style.display = 'none';
+                list.innerHTML = '';
+            }
+        }
+
+        async function generateBasicReport() {
             const department = document.getElementById('department').value;
             const year = document.getElementById('year').value;
-            const emptyColumns = document.getElementById('emptyColumns').value;
+            const emptyColumns = parseInt(document.getElementById('emptyColumns').value) || 0;
             const errorDiv = document.getElementById('mainErrorContainer');
             const generateBtn = document.getElementById('generateBtn');
 
-            // Clear errors
-            if (errorDiv) errorDiv.innerHTML = '';
+            errorDiv.innerHTML = '';
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
 
             try {
-                // Build query parameters
-                const params = new URLSearchParams();
-                if (department) params.append('department', department);
-                if (year) params.append('year', year);
-                if (emptyColumns) params.append('empty_columns', emptyColumns);
+                let endpoint = '/reports/student-basic?';
+                if (department) endpoint += `department=${encodeURIComponent(department)}&`;
+                if (year) endpoint += `year=${year}&`;
+                if (emptyColumns > 0) endpoint += `empty_columns=${emptyColumns}`;
 
-                // Show loading state
-                const originalBtnText = generateBtn.innerHTML;
-                generateBtn.innerHTML = 'Generating...';
-                generateBtn.disabled = true;
+                const response = await apiRequest(endpoint);
+                const data = await response.json();
 
-                try {
-                    // Normalize API Endpoint
-                    // If API_BASE_URL is 'http://127.0.0.1:8000/api', we just append endpoint
-                    // If it ends with slash, handle it.
-                    // auth.js defines API_BASE_URL (currently 'http://127.0.0.1:8000/api')
-
-                    const endpoint = `/reports/student-basic?${params.toString()}`;
-                    console.log(`Fetching from: ${API_BASE_URL}${endpoint}`);
-
-                    const response = await apiRequest(endpoint, {
-                        method: 'GET'
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    console.log("Data received:", data);
-
-                    currentReportData = data;
-
-                    // Show Modal with Data
-                    displayReportModal(data);
-
-                } catch (fetchError) {
-                    console.error("Fetch error:", fetchError);
-                    throw fetchError;
-                } finally {
-                    generateBtn.innerHTML = originalBtnText;
-                    generateBtn.disabled = false;
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to generate report');
                 }
+
+                currentReportData = data;
+                displayReportModal(data);
 
             } catch (error) {
-                console.error("Report process failed:", error);
-                if (errorDiv) {
-                    errorDiv.innerHTML = `
-                        <div class="alert alert-error">
-                            Failed: ${error.message}
-                        </div>
-                    `;
-                } else {
-                    alert(`Failed: ${error.message}`);
+                console.error('Report generation error:', error);
+                errorDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Report';
+            }
+        }
+
+        async function generateCustomReport() {
+            const selectedColumns = [];
+            document.querySelectorAll('#columnSelector input[type="checkbox"]:checked').forEach(cb => {
+                selectedColumns.push(cb.value);
+            });
+
+            if (selectedColumns.length === 0) {
+                document.getElementById('mainErrorContainer').innerHTML =
+                    '<div class="alert alert-error">Please select at least one column</div>';
+                return;
+            }
+
+            const department = document.getElementById('customDepartment').value;
+            const year = document.getElementById('customYear').value;
+            const emptyColumns = parseInt(document.getElementById('customEmptyColumns').value) || 0;
+            const errorDiv = document.getElementById('mainErrorContainer');
+            const generateBtn = document.getElementById('generateBtn');
+
+            errorDiv.innerHTML = '';
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+
+            try {
+                let endpoint = '/reports/custom?columns=' + selectedColumns.join(',');
+                if (department) endpoint += `&department=${encodeURIComponent(department)}`;
+                if (year) endpoint += `&year=${year}`;
+                if (emptyColumns > 0) endpoint += `&empty_columns=${emptyColumns}`;
+
+                // Add custom column names if provided
+                if (emptyColumns > 0) {
+                    const customNames = [];
+                    for (let i = 0; i < emptyColumns; i++) {
+                        const nameInput = document.getElementById(`customColName${i}`);
+                        customNames.push(nameInput ? nameInput.value : '');
+                    }
+                    if (customNames.some(name => name.trim() !== '')) {
+                        endpoint += `&custom_column_names=${encodeURIComponent(customNames.join(','))}`;
+                    }
                 }
+
+                const response = await apiRequest(endpoint);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to generate custom report');
+                }
+
+                currentReportData = data;
+                displayReportModal(data);
+
+            } catch (error) {
+                console.error('Custom report generation error:', error);
+                errorDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Report';
             }
         }
 
         function displayReportModal(data) {
+            editedData = {}; // Reset edited data
+            editedHeaders = {}; // Reset edited headers
+
             const modal = document.getElementById('reportModal');
-            const titleEl = document.getElementById('reportTitle');
-            const subtitleEl = document.getElementById('reportSubtitle');
+            const title = document.getElementById('reportTitle');
+            const subtitle = document.getElementById('reportSubtitle');
             const tableHead = document.getElementById('reportTableHead');
             const tableBody = document.getElementById('reportTableBody');
 
-            // Update Header
-            titleEl.textContent = data.report_name;
+            // Set title and subtitle
+            title.textContent = data.report_name || 'Report Generated';
+            subtitle.textContent = `${data.total_records || 0} records found`;
 
-            let filterInfo = [];
-            if (data.filters.department) filterInfo.push(data.filters.department);
-            if (data.filters.year) filterInfo.push(`Year ${data.filters.year}`);
-
-            const filterText = filterInfo.length > 0 ? filterInfo.join(', ') : 'All Students';
-            subtitleEl.textContent = `${filterText} • ${data.total_records} Records Found`;
-
-            // Update Table
-            // Headers
+            // Build table header with editable column names
             let headerHTML = '<tr>';
-            data.headers.forEach(header => {
-                headerHTML += `<th>${header}</th>`;
+            data.columns.forEach((col, colIndex) => {
+                headerHTML += `<th><div class="editable-cell" contenteditable="true" data-col-index="${colIndex}" data-original-name="${col}" onblur="handleHeaderEdit(this)" style="font-weight: 600; cursor: text;">${col}</div></th>`;
             });
             headerHTML += '</tr>';
             tableHead.innerHTML = headerHTML;
 
-            // Body
+            // Build table body with editable cells
             let bodyHTML = '';
-            if (data.data.length === 0) {
-                bodyHTML = `<tr><td colspan="${data.headers.length}" class="text-center" style="padding: 2rem; color: var(--text-secondary);">No records found matching criteria.</td></tr>`;
-            } else {
-                // Limit preview to first 100 rows for performance in modal
-                const previewData = data.data.slice(0, 100);
-
-                previewData.forEach(row => {
-                    bodyHTML += '<tr>';
-                    bodyHTML += `<td><strong>${row.register_number}</strong></td>`;
-                    bodyHTML += `<td>${row.name}</td>`;
-
-                    // Add empty columns
-                    for (let i = 1; i <= data.filters.empty_columns; i++) {
-                        bodyHTML += `<td style="background:#f8fafc; border-left:1px dashed #e2e8f0;"></td>`;
-                    }
-
-                    bodyHTML += '</tr>';
+            data.data.forEach((row, rowIndex) => {
+                bodyHTML += '<tr>';
+                data.columns.forEach((col, colIndex) => {
+                    const cellValue = row[col] || '';
+                    bodyHTML += `<td><div class="editable-cell" contenteditable="true" data-row="${rowIndex}" data-col="${col}" onblur="handleCellEdit(this)">${cellValue}</div></td>`;
                 });
-
-                if (data.data.length > 100) {
-                    bodyHTML += `<tr><td colspan="${data.headers.length}" class="text-center" style="padding: 1rem; color: var(--text-secondary);">And ${data.data.length - 100} more records... Download CSV to see all.</td></tr>`;
-                }
-            }
+                bodyHTML += '</tr>';
+            });
             tableBody.innerHTML = bodyHTML;
 
-            // Show Modal
+            // Show modal
             modal.classList.add('active');
         }
 
+
+        function handleCellEdit(cell) {
+            const rowIndex = parseInt(cell.getAttribute('data-row'));
+            const colName = cell.getAttribute('data-col');
+            const newValue = cell.textContent.trim();
+
+            if (!editedData[rowIndex]) {
+                editedData[rowIndex] = {};
+            }
+            editedData[rowIndex][colName] = newValue;
+        }
+
+        function handleHeaderEdit(headerCell) {
+            const colIndex = parseInt(headerCell.getAttribute('data-col-index'));
+            const originalName = headerCell.getAttribute('data-original-name');
+            const newName = headerCell.textContent.trim();
+
+            if (newName && newName !== originalName) {
+                editedHeaders[colIndex] = {
+                    original: originalName,
+                    new: newName
+                };
+            }
+        }
+
+
+        function closeModal() {
+            document.getElementById('reportModal').classList.remove('active');
+        }
+
+        // Download button
+        document.getElementById('downloadBtn').addEventListener('click', exportReport);
+
         function exportReport() {
             if (!currentReportData) {
-                alert('No report data to export');
+                alert('No report data available');
                 return;
             }
 
-            let csv = '';
-            csv += currentReportData.headers.join(',') + '\n';
-
-            currentReportData.data.forEach(row => {
-                let rowData = [row.register_number, row.name];
-                for (let i = 1; i <= currentReportData.filters.empty_columns; i++) {
-                    rowData.push('');
+            // Apply edited headers
+            const finalColumns = currentReportData.columns.map((col, index) => {
+                if (editedHeaders[index]) {
+                    return editedHeaders[index].new;
                 }
+                return col;
+            });
+
+            // Apply edited data to current report data
+            Object.keys(editedData).forEach(rowIndex => {
+                const row = currentReportData.data[rowIndex];
+                Object.keys(editedData[rowIndex]).forEach(colName => {
+                    row[colName] = editedData[rowIndex][colName];
+                });
+            });
+
+            // Convert to CSV with edited headers
+            let csv = finalColumns.join(',') + '\n';
+            currentReportData.data.forEach(row => {
+                const rowData = currentReportData.columns.map(col => {
+                    const value = row[col] || '';
+                    // Escape quotes and wrap in quotes if contains comma
+                    return value.toString().includes(',') ? `"${value.replace(/"/g, '""')}"` : value;
+                });
                 csv += rowData.join(',') + '\n';
             });
 
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `student_report_${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${currentReportData.report_name || 'report'}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>

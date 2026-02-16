@@ -66,7 +66,8 @@
             style="text-align: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 2rem;">
             <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">For Demo Purposes:</p>
             <div style="font-size: 0.8rem; color: var(--text-secondary);">
-                <strong>Admin:</strong> admin@campus.edu / admin123
+                <strong>Admin:</strong> admin@campus.edu / admin123<br>
+                <strong>Student:</strong> student@campus.edu / student123
             </div>
         </div>
     </div>
@@ -79,8 +80,6 @@
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            // The role is visually selected but backend determines actual role. 
-            // We can perhaps validate it client side if we wanted, but for now we'll just login.
             const selectedRole = document.getElementById('role').value;
 
             const errorDiv = document.getElementById('errorMessage');
@@ -96,6 +95,7 @@
                 const formData = new FormData();
                 formData.append('username', email);
                 formData.append('password', password);
+                formData.append('role', selectedRole); // Send selected role for validation
 
                 const response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: 'POST',
@@ -108,17 +108,11 @@
                     throw new Error(data.detail || 'Login failed. Please check your credentials.');
                 }
 
-                // Verify if the role matches strictly if we wanted to enforce the dropdown selection
-                if (data.role.toLowerCase() !== selectedRole.toLowerCase()) {
-                    // Optional: Warning or Error if they selected wrong role
-                    // For now, we'll just log it or allow it, as the token is valid for the user
-                    console.warn(`User selected ${selectedRole} but is actually ${data.role}`);
-                }
-
+                // Store token and role
                 localStorage.setItem('token', data.access_token);
                 localStorage.setItem('role', data.role);
 
-                // Redirect based on ACTUAL role from backend
+                // Redirect based on ACTUAL role from backend (not selected role)
                 if (data.role === 'admin' || data.role === 'staff') {
                     window.location.href = '/admin/dashboard';
                 } else if (data.role === 'student') {

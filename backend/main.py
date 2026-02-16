@@ -9,7 +9,7 @@ from database.db import engine
 from database import models
 
 # Import routers
-from routers import auth, admin, students, reports
+from routers import auth, admin, students, reports, requests
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -49,6 +49,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(students.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
+app.include_router(requests.router, prefix="/api")
 
 # Serve uploaded files
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
@@ -73,6 +74,12 @@ async def admin_upload_page(request: Request):
     return templates.TemplateResponse("admin/upload.html", {"request": request})
 
 
+@app.get("/admin/students", response_class=HTMLResponse)
+async def admin_students_page(request: Request):
+    """Serve admin students page"""
+    return templates.TemplateResponse("admin/students.html", {"request": request})
+
+
 @app.get("/admin/reports", response_class=HTMLResponse)
 async def admin_reports_page(request: Request):
     """Serve admin reports page"""
@@ -83,6 +90,18 @@ async def admin_reports_page(request: Request):
 async def student_dashboard_page(request: Request):
     """Serve student dashboard page"""
     return templates.TemplateResponse("student/dashboard.html", {"request": request})
+
+
+@app.get("/student/requests", response_class=HTMLResponse)
+async def student_requests_page(request: Request):
+    """Serve student requests page"""
+    return templates.TemplateResponse("student/requests.html", {"request": request})
+
+
+@app.get("/admin/requests", response_class=HTMLResponse)
+async def admin_requests_page(request: Request):
+    """Serve admin requests page"""
+    return templates.TemplateResponse("admin/requests.html", {"request": request})
 
 
 # API status endpoint

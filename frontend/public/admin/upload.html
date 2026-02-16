@@ -20,8 +20,12 @@
     <nav class="navbar">
         <div class="navbar-content">
             <a href="/admin/dashboard" class="navbar-brand">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" />
                 </svg>
                 University Management System
@@ -108,18 +112,23 @@
             </div>
 
             <!-- Bulk Data Upload Section -->
-            <div style="opacity: 0.7; border-top: 1px dashed var(--border-color); padding-top: 2rem;">
+            <div style="border-top: 1px dashed var(--border-color); padding-top: 2rem; margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Bulk Data Import</h3>
-                <p>Import multiple student records via CSV or Excel.</p>
-
-                <div class="form-group">
-                    <input type="file" id="bulkFile" class="form-input" accept=".csv,.xlsx,.xls" disabled
-                        style="cursor: not-allowed; background-color: #f1f5f9;">
-                </div>
-
-                <button class="btn btn-secondary" disabled style="cursor: not-allowed;">
-                    Feature Coming Soon
-                </button>
+                <p>Import multiple student records via CSV.</p>
+                <form id="bulkUploadForm">
+                    <div class="form-group">
+                        <label for="bulkFile" class="form-label">Select CSV File</label>
+                        <input type="file" id="bulkFile" class="form-input" accept=".csv" required
+                            style="padding: 0.5rem;">
+                        <p class="text-secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            Columns: student_id, name, department, year, email (optional), phone, address
+                        </p>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">
+                        Import Data
+                    </button>
+                    <div id="bulkMessageContainer"></div>
+                </form>
             </div>
         </div>
     </div>
@@ -145,54 +154,93 @@
         });
 
         const fileUploadForm = document.getElementById('fileUploadForm');
+        const bulkUploadForm = document.getElementById('bulkUploadForm');
 
         if (fileUploadForm) {
             fileUploadForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-
-                const studentId = document.getElementById('studentId').value;
-                const fileType = document.getElementById('fileType').value;
-                const fileInput = document.getElementById('file');
-                const file = fileInput.files[0];
-                const msgContainer = document.getElementById('messageContainer');
-
-                if (!file) {
-                    msgContainer.innerHTML = '<div class="alert alert-error">Please select a file</div>';
-                    return;
-                }
-
-                // Create form data
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('student_id', studentId);
-                formData.append('file_type', fileType);
-
-                try {
-                    const token = getToken();
-                    // Assuming API_BASE_URL is available
-
-                    const response = await fetch(`${API_BASE_URL}/admin/upload/file`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: formData
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(data.detail || 'Upload failed');
-                    }
-
-                    msgContainer.innerHTML = '<div class="alert alert-success">File uploaded successfully!</div>';
-                    fileUploadForm.reset();
-
-                } catch (error) {
-                    console.error("Upload error:", error);
-                    msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
-                }
+                await handleFileUpload();
             });
+        }
+
+        if (bulkUploadForm) {
+            bulkUploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleBulkUpload();
+            });
+        }
+
+        async function handleFileUpload() {
+            const studentId = document.getElementById('studentId').value;
+            const fileType = document.getElementById('fileType').value;
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+            const msgContainer = document.getElementById('messageContainer');
+
+            if (!file) {
+                msgContainer.innerHTML = '<div class="alert alert-error">Please select a file</div>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('student_id', studentId);
+            formData.append('file_type', fileType);
+
+            try {
+                const response = await apiRequest('/admin/upload/file', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Upload failed');
+
+                msgContainer.innerHTML = '<div class="alert alert-success">File uploaded successfully!</div>';
+                document.getElementById('fileUploadForm').reset();
+            } catch (error) {
+                console.error("Upload error:", error);
+                msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        }
+
+        async function handleBulkUpload() {
+            const fileInput = document.getElementById('bulkFile');
+            const file = fileInput.files[0];
+            const msgContainer = document.getElementById('bulkMessageContainer');
+
+            if (!file) {
+                msgContainer.innerHTML = '<div class="alert alert-error">Please select a CSV file</div>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                msgContainer.innerHTML = '<div class="alert" style="background:var(--bg-secondary)">Uploading...</div>';
+
+                const response = await apiRequest('/admin/upload/data', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Import failed');
+
+                const summary = data.summary;
+                let msg = `Created: ${summary.created}, Updated: ${summary.updated}.`;
+                if (summary.errors && summary.errors.length > 0) {
+                    msg += ` <br>Errors: ${summary.errors.length} (check console)`;
+                    console.warn('Import errors:', summary.errors);
+                }
+
+                msgContainer.innerHTML = `<div class="alert alert-success">${msg}</div>`;
+                document.getElementById('bulkUploadForm').reset();
+            } catch (error) {
+                console.error("Bulk upload error:", error);
+                msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
         }
 
         function logout() {

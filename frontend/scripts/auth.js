@@ -2,7 +2,7 @@
  * Authentication utilities and API helpers
  */
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = '/api';
 
 /**
  * Get JWT token from localStorage

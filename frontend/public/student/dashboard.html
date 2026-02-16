@@ -4,37 +4,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - Campus Data Automation</title>
-    <link rel="stylesheet" href="../../styles/main.css">
+    <title>Student Dashboard - University Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        .navbar-user {
+            position: relative;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card h3 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            width: 140px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            flex: 1;
+        }
+    </style>
 </head>
 
 <body>
     <nav class="navbar">
         <div class="navbar-content">
-            <a href="#" class="navbar-brand">Campus Data System</a>
-            <ul class="navbar-menu">
-                <li><a href="dashboard.html" class="navbar-link active">Dashboard</a></li>
-                <li><a href="#" class="navbar-link" onclick="logout()">Logout</a></li>
-            </ul>
+            <a href="/student/dashboard" class="navbar-brand">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                University Management System
+            </a>
+
+            <div class="navbar-right">
+                <ul class="navbar-menu">
+                    <li><a href="/student/dashboard" class="navbar-link active">Dashboard</a></li>
+                    <li><a href="#" class="navbar-link" onclick="showComingSoon('Documents')">Documents</a></li>
+                    <li><a href="/student/requests" class="navbar-link">Requests</a></li>
+                </ul>
+
+                <!-- User Profile Dropdown -->
+                <div class="navbar-user" id="userMenu">
+                    <button class="user-menu-btn" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">S</div>
+                        <div class="user-info">
+                            <span class="user-name" id="userName">Student</span>
+                            <span class="user-role">Student</span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="#" class="dropdown-item">My Profile</a>
+                        <a href="#" class="dropdown-item" onclick="showComingSoon('Settings')">Settings</a>
+                        <div style="border-top: 1px solid var(--border-color); margin: 0.25rem 0;"></div>
+                        <a href="#" class="dropdown-item danger" onclick="logout()">Logout</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
     <div class="container">
-        <h1 style="margin-bottom: 2rem;">Student Dashboard</h1>
-
-        <div id="loadingContainer" class="flex-center" style="min-height: 200px;">
-            <div class="spinner"></div>
+        <!-- Loading State -->
+        <div id="loadingContainer" style="text-align: center; padding: 3rem;">
+            <div
+                style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite;">
+            </div>
+            <p style="margin-top: 1rem; color: var(--text-secondary);">Loading your profile...</p>
         </div>
 
-        <div id="profileContainer" style="display: none;"></div>
+        <!-- Profile Content -->
+        <div id="profileContainer" style="display: none;">
+            <!-- Welcome Section -->
+            <div class="card mb-4"
+                style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); color: white; border: none;">
+                <div style="padding: 2rem;">
+                    <h1 style="color: white; margin-bottom: 0.5rem; font-size: 1.75rem;">Welcome back, <span
+                            id="welcomeName">Student</span>! 👋</h1>
+                    <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 0; font-size: 1rem;">Here's your academic
+                        information at a glance.</p>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-3 mb-4">
+                <div class="card" style="border-left: 4px solid var(--primary-color);">
+                    <h3
+                        style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+                        STUDENT ID</h3>
+                    <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0;"
+                        id="statStudentId">-</p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--success-color);">
+                    <h3
+                        style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+                        CURRENT YEAR</h3>
+                    <p style="font-size: 1.5rem; font-weight: 700; color: var(--success-color); margin-bottom: 0;"
+                        id="statYear">-</p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--info-color);">
+                    <h3
+                        style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+                        DEPARTMENT</h3>
+                    <p style="font-size: 1.125rem; font-weight: 700; color: var(--info-color); margin-bottom: 0;"
+                        id="statDepartment">-</p>
+                </div>
+            </div>
+
+            <!-- Profile Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Personal Information</h2>
+                    <p>Your registered details in the university system.</p>
+                </div>
+
+                <div id="profileInfo"></div>
+            </div>
+
+            <!-- Documents Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>My Documents</h2>
+                    <p>Documents uploaded to your profile.</p>
+                </div>
+
+                <div id="documentsSection">
+                    <p style="color: var(--text-secondary); padding: 1rem 0;">No documents uploaded yet.</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Quick Actions</h2>
+                    <p>Common tasks and features.</p>
+                </div>
+
+                <div class="grid grid-3">
+                    <button class="btn btn-secondary" onclick="window.location.href='/student/requests'">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" style="margin-right: 0.5rem;">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Request Update
+                    </button>
+                    <button class="btn btn-secondary" onclick="showComingSoon('Document Upload')"
+                        style="opacity: 0.6; cursor: not-allowed;" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" style="margin-right: 0.5rem;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Upload Document
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/student/requests'">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" style="margin-right: 0.5rem;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        View History
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="../../scripts/auth.js"></script>
+    <script src="/scripts/auth.js"></script>
     <script>
-        // Require student role
+        // Auth check
+        requireAuth();
         requireRole('student');
 
-        // Load student profile on page load
+        // User menu toggle
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('userMenu');
+            const btn = document.querySelector('.user-menu-btn');
+            if (menu && !menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                menu.classList.remove('active');
+            }
+        });
+
+        function showComingSoon(feature) {
+            alert(`${feature} feature is coming soon in future modules!`);
+        }
+
+        // Load student profile
         loadStudentProfile();
 
         async function loadStudentProfile() {
@@ -42,6 +244,7 @@
                 const data = await apiRequestJSON('/student/profile');
                 displayProfile(data);
             } catch (error) {
+                console.error('Failed to load profile:', error);
                 document.getElementById('loadingContainer').innerHTML = `
                     <div class="alert alert-error">
                         Failed to load profile: ${error.message}
@@ -51,115 +254,99 @@
         }
 
         function displayProfile(data) {
+            // Hide loading, show content
             document.getElementById('loadingContainer').style.display = 'none';
             document.getElementById('profileContainer').style.display = 'block';
 
+            // Update welcome name
+            const firstName = data.name ? data.name.split(' ')[0] : 'Student';
+            document.getElementById('welcomeName').textContent = firstName;
+            document.getElementById('userName').textContent = data.name || 'Student';
+
+            // Update avatar
+            const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'S';
+            document.getElementById('userAvatar').textContent = initials;
+
+            // Update stats
+            document.getElementById('statStudentId').textContent = data.student_id || 'N/A';
+            document.getElementById('statYear').textContent = data.year ? `Year ${data.year}` : 'N/A';
+            document.getElementById('statDepartment').textContent = data.department || 'N/A';
+
+            // Profile information
             const profileHTML = `
-                <div class="card">
-                    <h2 class="card-header">My Profile</h2>
-                    <div class="card-body">
-                        <div class="grid grid-2">
-                            <div>
-                                <p style="margin-bottom: 1rem;">
-                                    <strong>Student ID:</strong><br>
-                                    ${data.student_id}
-                                </p>
-                                <p style="margin-bottom: 1rem;">
-                                    <strong>Name:</strong><br>
-                                    ${data.name}
-                                </p>
-                                <p style="margin-bottom: 1rem;">
-                                    <strong>Email:</strong><br>
-                                    ${data.email}
-                                </p>
-                            </div>
-                            <div>
-                                <p style="margin-bottom: 1rem;">
-                                    <strong>Department:</strong><br>
-                                    ${data.department || 'Not specified'}
-                                </p>
-                                <p style="margin-bottom: 1rem;">
-                                    <strong>Year:</strong><br>
-                                    ${data.year || 'Not specified'}
-                                </p>
-                                <p style="margin-bottom: 1rem;">
-                                    <strong>Phone:</strong><br>
-                                    ${data.phone || 'Not specified'}
-                                </p>
-                            </div>
-                        </div>
-
-                        ${data.address ? `
-                            <p style="margin-top: 1rem;">
-                                <strong>Address:</strong><br>
-                                ${data.address}
-                            </p>
-                        ` : ''}
-
-                        <div class="alert alert-info mt-2">
-                            <strong>Note:</strong> This is a read-only view. To update your information, 
-                            submit an update request (coming in Module 3).
-                        </div>
-                    </div>
+                <div class="info-row">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">${data.name || 'Not specified'}</div>
                 </div>
-
-                ${data.documents && data.documents.length > 0 ? `
-                    <div class="card">
-                        <h2 class="card-header">My Documents</h2>
-                        <div class="card-body">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>File Type</th>
-                                        <th>File Name</th>
-                                        <th>Uploaded At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${data.documents.map(doc => `
-                                        <tr>
-                                            <td>${doc.file_type}</td>
-                                            <td>${doc.file_name}</td>
-                                            <td>${formatDate(doc.uploaded_at)}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                ` : `
-                    <div class="card">
-                        <h2 class="card-header">My Documents</h2>
-                        <div class="card-body">
-                            <p style="color: var(--text-secondary);">No documents uploaded yet.</p>
-                        </div>
-                    </div>
-                `}
-
-                <div class="card">
-                    <h2 class="card-header">Quick Actions</h2>
-                    <div class="card-body">
-                        <div class="grid grid-3">
-                            <button class="btn btn-outline" disabled>
-                                Request Update<br>
-                                <small style="font-weight: normal;">(Module 3)</small>
-                            </button>
-                            <button class="btn btn-outline" disabled>
-                                View History<br>
-                                <small style="font-weight: normal;">(Module 3)</small>
-                            </button>
-                            <button class="btn btn-outline" disabled>
-                                Upload Document<br>
-                                <small style="font-weight: normal;">(Future)</small>
-                            </button>
-                        </div>
-                    </div>
+                <div class="info-row">
+                    <div class="info-label">Student ID</div>
+                    <div class="info-value">${data.student_id || 'Not specified'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">${data.email || 'Not specified'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Department</div>
+                    <div class="info-value">${data.department || 'Not specified'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Year</div>
+                    <div class="info-value">${data.year ? `Year ${data.year}` : 'Not specified'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">${data.phone || 'Not specified'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Address</div>
+                    <div class="info-value">${data.address || 'Not specified'}</div>
                 </div>
             `;
+            document.getElementById('profileInfo').innerHTML = profileHTML;
 
-            document.getElementById('profileContainer').innerHTML = profileHTML;
+            // Documents section
+            if (data.documents && data.documents.length > 0) {
+                const docsHTML = `
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Document Type</th>
+                                    <th>File Name</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.documents.map(doc => `
+                                    <tr>
+                                        <td><strong>${doc.file_type}</strong></td>
+                                        <td>${doc.file_name}</td>
+                                        <td>${formatDate(doc.uploaded_at)}</td>
+                                        <td>
+                                            <button class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+                                                View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                document.getElementById('documentsSection').innerHTML = docsHTML;
+            }
         }
     </script>
+
+    <style>
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </body>
 
 </html>

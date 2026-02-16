@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Requests - Admin Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/admin/dashboard" class="navbar-brand">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                University Management System
+            </a>
+            <div class="navbar-right">
+                <ul class="navbar-menu">
+                    <li><a href="/admin/dashboard" class="navbar-link">Dashboard</a></li>
+                    <li><a href="/admin/upload" class="navbar-link">Upload</a></li>
+                    <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
+                    <li><a href="/admin/requests" class="navbar-link active">Requests</a></li>
+                </ul>
+                <div class="navbar-user">
+                    <span id="userName" style="font-weight: 500;">Admin</span>
+                    <button onclick="logout()" class="btn btn-sm btn-outline" style="margin-left: 1rem;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-section">
+            <div>
+                <h1>Manage Update Requests</h1>
+                <p class="subtitle">Review and approve student profile changes</p>
+            </div>
+
+            <div class="filter-group">
+                <select id="statusFilter" class="form-select" onchange="loadRequests()">
+                    <option value="">All Statuses</option>
+                    <option value="pending" selected>Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Field</th>
+                            <th>Old Value</th>
+                            <th>New Value</th>
+                            <th>Reason</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center;">Loading requests...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Review Request</h3>
+                <button class="modal-close" onclick="closeReviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="requestDetails"></div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label">Feedback / Reason (Optional)</label>
+                    <textarea id="feedback" class="form-input" rows="3"
+                        placeholder="e.g., Verified with documents, or Invalid request"></textarea>
+                </div>
+                <input type="hidden" id="currentRequestId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="submitReview('rejected')">Reject</button>
+                <button class="btn btn-success" onclick="submitReview('approved')">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/auth.js"></script>
+    <script>
+        requireAuth();
+        requireRole('admin');
+
+        // Store requests data globally
+        let currentRequests = [];
+
+        async function loadRequests() {
+            const status = document.getElementById('statusFilter').value;
+            let url = '/requests/all';
+            if (status) url += `?status_filter=${status}`;
+
+            try {
+                const response = await apiRequest(url);
+                const data = await response.json();
+                currentRequests = data; // Update global variable
+
+                const tbody = document.getElementById('requestsTableBody');
+                tbody.innerHTML = '';
+
+                if (currentRequests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No requests found</td></tr>';
+                    return;
+                }
+
+                currentRequests.forEach(req => {
+                    const date = new Date(req.requested_at).toLocaleDateString();
+                    let statusBadge = '';
+                    if (req.status === 'pending') statusBadge = '<span class="badge badge-warning">Pending</span>';
+                    else if (req.status === 'approved') statusBadge = '<span class="badge badge-success">Approved</span>';
+                    else if (req.status === 'rejected') statusBadge = '<span class="badge badge-error">Rejected</span>';
+
+                    let actions = '';
+                    if (req.status === 'pending') {
+                        actions = `<button class="btn btn-sm btn-primary" onclick="openReviewModal(${req.id})">Review</button>`;
+                    } else {
+                        actions = `<span class="text-secondary" style="font-size: 0.8rem;">Reviewed by ${req.reviewed_by || 'Admin'}</span>`;
+                    }
+
+                    const row = `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">${req.student_name}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">${req.student_id}</div>
+                            </td>
+                            <td class="capitalize">${req.field_name}</td>
+                            <td class="text-secondary">${req.old_value || '-'}</td>
+                            <td style="font-weight: 500;">${req.new_value}</td>
+                            <td>${req.reason}</td>
+                            <td>${date}</td>
+                            <td>${statusBadge}</td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Failed to load requests:', error);
+                document.getElementById('requestsTableBody').innerHTML =
+                    '<tr><td colspan="8" style="text-align: center; color: var(--error-color);">Failed to load requests</td></tr>';
+            }
+        }
+
+        function openReviewModal(requestId) {
+            const req = currentRequests.find(r => r.id === requestId);
+            if (!req) return;
+
+            document.getElementById('currentRequestId').value = requestId;
+            document.getElementById('feedback').value = '';
+
+            const detailsHtml = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label class="text-secondary" style="font-size: 0.85rem;">Student Name</label>
+                        <div style="font-weight: 500;">${req.student_name}</div>
+                    </div>
+                    <div>
+                        <label class="text-secondary" style="font-size: 0.85rem;">Student ID</label>
+                        <div style="font-weight: 500;">${req.student_id}</div>
+                    </div>
+                    <div>
+                        <label class="text-secondary" style="font-size: 0.85rem;">Field</label>
+                        <div class="capitalize" style="font-weight: 500;">${req.field_name}</div>
+                    </div>
+                    <div>
+                        <label class="text-secondary" style="font-size: 0.85rem;">Reason</label>
+                        <div>${req.reason}</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; background-color: #f8fafc; border-radius: var(--radius-md);">
+                    <div>
+                        <label class="text-secondary" style="font-size: 0.85rem;">Old Value</label>
+                        <div style="color: var(--error-color); text-decoration: line-through;">${req.old_value || '(Empty)'}</div>
+                    </div>
+                    <div>
+                        <label class="text-secondary" style="font-size: 0.85rem;">New Value</label>
+                        <div style="color: var(--success-color); font-weight: 600;">${req.new_value}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('requestDetails').innerHTML = detailsHtml;
+            document.getElementById('reviewModal').classList.add('active');
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('active');
+        }
+
+        async function submitReview(status) {
+            const requestId = document.getElementById('currentRequestId').value;
+            const feedback = document.getElementById('feedback').value;
+
+            try {
+                const response = await apiRequest(`/requests/${requestId}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        status: status,
+                        feedback: feedback
+                    })
+                });
+
+                if (response.ok) {
+                    closeReviewModal();
+                    loadRequests(); // Refresh list
+                    alert(`Request ${status} successfully!`);
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to update request');
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRequests);
+    </script>
+    <style>
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .capitalize {
+            text-transform: capitalize;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+    </style>
+</body>
+
+</html>
