@@ -1,163 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "layouts/admin_base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - University Management System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles/main.css">
-    <style>
-        .navbar-user {
-            position: relative;
-        }
-    </style>
-</head>
+{% block title %}Admin Dashboard - University Management System{% endblock %}
 
-<body>
-    <nav class="navbar">
-        <div class="navbar-content">
-            <a href="/admin/dashboard" class="navbar-brand">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-                University Management System
-            </a>
-
-            <div class="navbar-right">
-                <ul class="navbar-menu">
-                    <li><a href="/admin/dashboard" class="navbar-link active">Dashboard</a></li>
-                    <li><a href="/admin/upload" class="navbar-link">Upload</a></li>
-                    <li><a href="/admin/students" class="navbar-link">Students</a></li>
-                    <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
-                    <li><a href="/admin/requests" class="navbar-link">Requests</a></li>
-                </ul>
-
-                <!-- User Profile Dropdown -->
-                <div class="navbar-user" id="userMenu">
-                    <button class="user-menu-btn" onclick="toggleUserMenu()">
-                        <div class="user-avatar">A</div>
-                        <div class="user-info">
-                            <span class="user-name">Administrator</span>
-                            <span class="user-role">Admin</span>
-                        </div>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </button>
-                    <div class="user-dropdown">
-                        <a href="#" class="dropdown-item">My Profile</a>
-                        <a href="#" class="dropdown-item">Settings</a>
-                        <div style="border-top: 1px solid var(--border-color); margin: 0.25rem 0;"></div>
-                        <a href="#" class="dropdown-item danger" onclick="logout()">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="card mb-4" id="dashboard-content">
-            <div class="card-header" style="background: white; border-bottom: none; padding-bottom: 0;">
-                <h1>Admin Dashboard</h1>
-                <p>Welcome back, Administrator.</p>
-            </div>
-
-            <div class="grid grid-3" style="margin-top: 1rem;">
-                <div class="card" style="border-top: 4px solid var(--primary-light); padding: 1.5rem;">
-                    <h3>📊 Reports</h3>
-                    <p style="font-size: 0.9rem;">Generate and download student reports.</p>
-                    <a href="/admin/reports" class="btn btn-primary"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">View
-                        Reports</a>
-                </div>
-
-                <div class="card" style="border-top: 4px solid var(--success-color); padding: 1.5rem;">
-                    <h3>👥 Students</h3>
-                    <div style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0;" id="stat-students">-</div>
-                    <p style="font-size: 0.9rem;">Manage student profiles and credentials.</p>
-                    <a href="/admin/students" class="btn btn-secondary"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">Manage Students</a>
-                </div>
-
-                <div class="card" style="border-top: 4px solid var(--warning-color); padding: 1.5rem;">
-                    <h3>🔔 Requests</h3>
-                    <div style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0;" id="stat-requests">-</div>
-                    <p style="font-size: 0.9rem;">Review pending update requests.</p>
-                    <a href="/admin/requests" class="btn btn-primary"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">View Requests</a>
-                </div>
-
-                <div class="card" style="border-top: 4px solid var(--secondary-color); padding: 1.5rem;">
-                    <h3>📤 Upload Data</h3>
-                    <p style="font-size: 0.9rem;">Upload student records via CSV/Excel.</p>
-                    <a href="/admin/upload" class="btn btn-outline"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">Upload
-                        Now</a>
-                </div>
-            </div>
-        </div>
+{% block admin_content %}
+<div class="card mb-4" id="dashboard-content">
+    <div class="card-header" style="background: white; border-bottom: none; padding-bottom: 0;">
+        <h1>Admin Dashboard</h1>
+        <p>Welcome back, Administrator.</p>
     </div>
 
-    <script src="/scripts/auth.js"></script>
-    <script>
-        requireAuth();
-        requireRole('admin');
+    <div class="grid grid-3" style="margin-top: 1rem;">
+        <div class="card" style="border-top: 4px solid var(--primary-light); padding: 1.5rem;">
+            <h3>📊 Reports</h3>
+            <p style="font-size: 0.9rem;">Generate and download student reports.</p>
+            <a href="/admin/reports" class="btn btn-primary"
+                style="width: 100%; justify-content: center; margin-top: 1rem;">View
+                Reports</a>
+        </div>
 
-        async function loadDashboardStats() {
-            try {
-                const response = await apiRequest('/admin/dashboard');
-                const data = await response.json();
+        <div class="card" style="border-top: 4px solid var(--success-color); padding: 1.5rem;">
+            <h3>👥 Students</h3>
+            <div style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0;" id="stat-students">-</div>
+            <p style="font-size: 0.9rem;">Manage student profiles and credentials.</p>
+            <a href="/admin/students" class="btn btn-secondary"
+                style="width: 100%; justify-content: center; margin-top: 1rem;">Manage Students</a>
+        </div>
 
-                if (data.stats) {
-                    document.getElementById('stat-students').textContent = data.stats.total_students;
-                    document.getElementById('stat-requests').textContent = data.stats.pending_requests;
+        <div class="card" style="border-top: 4px solid var(--warning-color); padding: 1.5rem;">
+            <h3>🔔 Requests</h3>
+            <div style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0;" id="stat-requests">-</div>
+            <p style="font-size: 0.9rem;">Review pending update requests.</p>
+            <a href="/admin/requests" class="btn btn-primary"
+                style="width: 100%; justify-content: center; margin-top: 1rem;">View Requests</a>
+        </div>
 
-                    // Add badge to requests if pending > 0
-                    if (data.stats.pending_requests > 0) {
-                        const reqLink = document.querySelector('a[href="/admin/requests"]');
-                        if (reqLink) {
-                            reqLink.innerHTML += ` <span class="badge badge-warning" style="margin-left:5px; font-size: 0.7rem;">${data.stats.pending_requests}</span>`;
-                        }
+        <div class="card" style="border-top: 4px solid var(--secondary-color); padding: 1.5rem;">
+            <h3>📤 Upload Data</h3>
+            <p style="font-size: 0.9rem;">Upload student records via CSV/Excel.</p>
+            <a href="/admin/upload" class="btn btn-outline"
+                style="width: 100%; justify-content: center; margin-top: 1rem;">Upload
+                Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ super() }}
+<script>
+    async function loadDashboardStats() {
+        try {
+            const response = await apiRequest('/admin/dashboard');
+            const data = await response.json();
+
+            if (data.stats) {
+                document.getElementById('stat-students').textContent = data.stats.total_students;
+                document.getElementById('stat-requests').textContent = data.stats.pending_requests;
+
+                // Add badge to requests if pending > 0
+                if (data.stats.pending_requests > 0) {
+                    const reqLink = document.querySelector('a[href="/admin/requests"]');
+                    if (reqLink) {
+                        reqLink.innerHTML += ` <span class="badge badge-warning" style="margin-left:5px; font-size: 0.7rem;">${data.stats.pending_requests}</span>`;
                     }
                 }
-            } catch (error) {
-                console.error("Failed to load stats", error);
             }
+        } catch (error) {
+            console.error("Failed to load stats", error);
         }
+    }
 
-        loadDashboardStats();
-
-        function toggleUserMenu() {
-            const menu = document.getElementById('userMenu');
-            menu.classList.toggle('active');
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('userMenu');
-            // Check if click was inside user menu button or dropdown
-            const btn = document.querySelector('.user-menu-btn');
-
-            if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
-                menu.classList.remove('active');
-            }
-        });
-
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
-            window.location.href = '/';
-        }
-    </script>
-</body>
-
-</html>
+    loadDashboardStats();
+</script>
+{% endblock %}

@@ -65,43 +65,43 @@ async def login_page(request: Request):
 @app.get("/admin/dashboard", response_class=HTMLResponse)
 async def admin_dashboard_page(request: Request):
     """Serve admin dashboard page"""
-    return templates.TemplateResponse("admin/dashboard.html", {"request": request})
+    return templates.TemplateResponse("admin/dashboard.html", {"request": request, "active_page": "dashboard"})
 
 
 @app.get("/admin/upload", response_class=HTMLResponse)
 async def admin_upload_page(request: Request):
     """Serve admin upload page"""
-    return templates.TemplateResponse("admin/upload.html", {"request": request})
+    return templates.TemplateResponse("admin/upload.html", {"request": request, "active_page": "upload"})
 
 
 @app.get("/admin/students", response_class=HTMLResponse)
 async def admin_students_page(request: Request):
     """Serve admin students page"""
-    return templates.TemplateResponse("admin/students.html", {"request": request})
+    return templates.TemplateResponse("admin/students.html", {"request": request, "active_page": "students"})
 
 
 @app.get("/admin/reports", response_class=HTMLResponse)
 async def admin_reports_page(request: Request):
     """Serve admin reports page"""
-    return templates.TemplateResponse("admin/reports.html", {"request": request})
+    return templates.TemplateResponse("admin/reports.html", {"request": request, "active_page": "reports"})
 
 
 @app.get("/student/dashboard", response_class=HTMLResponse)
 async def student_dashboard_page(request: Request):
     """Serve student dashboard page"""
-    return templates.TemplateResponse("student/dashboard.html", {"request": request})
+    return templates.TemplateResponse("student/dashboard.html", {"request": request, "active_page": "dashboard"})
 
 
 @app.get("/student/requests", response_class=HTMLResponse)
 async def student_requests_page(request: Request):
     """Serve student requests page"""
-    return templates.TemplateResponse("student/requests.html", {"request": request})
+    return templates.TemplateResponse("student/requests.html", {"request": request, "active_page": "requests"})
 
 
 @app.get("/admin/requests", response_class=HTMLResponse)
 async def admin_requests_page(request: Request):
     """Serve admin requests page"""
-    return templates.TemplateResponse("admin/requests.html", {"request": request})
+    return templates.TemplateResponse("admin/requests.html", {"request": request, "active_page": "requests"})
 
 
 # API status endpoint

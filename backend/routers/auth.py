@@ -18,7 +18,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 def login(
     username: str = Form(...),
     password: str = Form(...),
-    role: Optional[str] = Form(None),
+    role: str = Form(...),
     db: Session = Depends(get_db)
 ):
     """

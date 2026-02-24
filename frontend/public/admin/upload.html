@@ -1,254 +1,168 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "layouts/admin_base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload - University Management System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles/main.css">
-    <style>
-        .navbar-user {
-            position: relative;
-        }
-    </style>
-</head>
+{% block title %}Upload - University Management System{% endblock %}
 
-<body>
-    <nav class="navbar">
-        <div class="navbar-content">
-            <a href="/admin/dashboard" class="navbar-brand">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-                University Management System
-            </a>
-
-            <div class="navbar-right">
-                <ul class="navbar-menu">
-                    <li><a href="/admin/dashboard" class="navbar-link">Dashboard</a></li>
-                    <li><a href="/admin/upload" class="navbar-link active">Upload</a></li>
-                    <li><a href="/admin/reports" class="navbar-link">Reports</a></li>
-                </ul>
-
-                <!-- User Profile Dropdown -->
-                <div class="navbar-user" id="userMenu">
-                    <button class="user-menu-btn" onclick="toggleUserMenu()">
-                        <div class="user-avatar">A</div>
-                        <div class="user-info">
-                            <span class="user-name">Administrator</span>
-                            <span class="user-role">Admin</span>
-                        </div>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </button>
-                    <div class="user-dropdown">
-                        <a href="#" class="dropdown-item">My Profile</a>
-                        <a href="#" class="dropdown-item">Settings</a>
-                        <div style="border-top: 1px solid var(--border-color); margin: 0.25rem 0;"></div>
-                        <a href="#" class="dropdown-item danger" onclick="logout()">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="card mb-4" style="max-width: 800px; margin: 0 auto;">
-            <div class="card-header">
-                <h2>Upload Files & Data</h2>
-                <p>Upload student documents and bulk records.</p>
-            </div>
-
-            <div id="messageContainer"></div>
-
-            <!-- File Upload Section -->
-            <div style="margin-bottom: 2rem;">
-                <h3
-                    style="margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-                    Single Document Upload</h3>
-                <form id="fileUploadForm">
-                    <div class="grid grid-2">
-                        <div class="form-group">
-                            <label for="studentId" class="form-label">Student Database ID</label>
-                            <input type="number" id="studentId" class="form-input" placeholder="e.g. 1, 2, 3" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="fileType" class="form-label">Document Type</label>
-                            <select id="fileType" class="form-select" required>
-                                <option value="">Select type...</option>
-                                <option value="photo">Photo</option>
-                                <option value="certificate">Certificate</option>
-                                <option value="id_proof">ID Proof</option>
-                                <option value="transcript">Transcript</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="file" class="form-label">Select File</label>
-                        <input type="file" id="file" class="form-input" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
-                            required style="padding: 0.5rem;">
-                        <p class="text-secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            Allowed: JPG, PNG, PDF, DOC, DOCX (Max 5MB)
-                        </p>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">
-                        Upload Document
-                    </button>
-                </form>
-            </div>
-
-            <!-- Bulk Data Upload Section -->
-            <div style="border-top: 1px dashed var(--border-color); padding-top: 2rem; margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Bulk Data Import</h3>
-                <p>Import multiple student records via CSV.</p>
-                <form id="bulkUploadForm">
-                    <div class="form-group">
-                        <label for="bulkFile" class="form-label">Select CSV File</label>
-                        <input type="file" id="bulkFile" class="form-input" accept=".csv" required
-                            style="padding: 0.5rem;">
-                        <p class="text-secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            Columns: student_id, name, department, year, email (optional), phone, address
-                        </p>
-                    </div>
-                    <button type="submit" class="btn btn-secondary">
-                        Import Data
-                    </button>
-                    <div id="bulkMessageContainer"></div>
-                </form>
-            </div>
-        </div>
+{% block admin_content %}
+<div class="card mb-4" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header">
+        <h2>Upload Files & Data</h2>
+        <p>Upload student documents and bulk records.</p>
     </div>
 
-    <script src="/scripts/auth.js"></script>
-    <script>
-        // Check Auth
-        requireAuth();
-        requireRole('admin');
+    <div id="messageContainer"></div>
 
-        function toggleUserMenu() {
-            const menu = document.getElementById('userMenu');
-            menu.classList.toggle('active');
-        }
+    <!-- File Upload Section -->
+    <div style="margin-bottom: 2rem;">
+        <h3
+            style="margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+            Single Document Upload</h3>
+        <form id="fileUploadForm">
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label for="studentId" class="form-label">Student Database ID</label>
+                    <input type="number" id="studentId" class="form-input" placeholder="e.g. 1, 2, 3" required>
+                </div>
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('userMenu');
-            const btn = document.querySelector('.user-menu-btn');
-            if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
-                menu.classList.remove('active');
-            }
+                <div class="form-group">
+                    <label for="fileType" class="form-label">Document Type</label>
+                    <select id="fileType" class="form-select" required>
+                        <option value="">Select type...</option>
+                        <option value="photo">Photo</option>
+                        <option value="certificate">Certificate</option>
+                        <option value="id_proof">ID Proof</option>
+                        <option value="transcript">Transcript</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="file" class="form-label">Select File</label>
+                <input type="file" id="file" class="form-input" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" required
+                    style="padding: 0.5rem;">
+                <p class="text-secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
+                    Allowed: JPG, PNG, PDF, DOC, DOCX (Max 5MB)
+                </p>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Upload Document
+            </button>
+        </form>
+    </div>
+
+    <!-- Bulk Data Upload Section -->
+    <div style="border-top: 1px dashed var(--border-color); padding-top: 2rem; margin-top: 2rem;">
+        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Bulk Data Import</h3>
+        <p>Import multiple student records via CSV.</p>
+        <form id="bulkUploadForm">
+            <div class="form-group">
+                <label for="bulkFile" class="form-label">Select CSV File</label>
+                <input type="file" id="bulkFile" class="form-input" accept=".csv" required style="padding: 0.5rem;">
+                <p class="text-secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
+                    Columns: student_id, name, department, year, email (optional), phone, address
+                </p>
+            </div>
+            <button type="submit" class="btn btn-secondary">
+                Import Data
+            </button>
+            <div id="bulkMessageContainer"></div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ super() }}
+<script>
+    const fileUploadForm = document.getElementById('fileUploadForm');
+    const bulkUploadForm = document.getElementById('bulkUploadForm');
+
+    if (fileUploadForm) {
+        fileUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handleFileUpload();
         });
+    }
 
-        const fileUploadForm = document.getElementById('fileUploadForm');
-        const bulkUploadForm = document.getElementById('bulkUploadForm');
+    if (bulkUploadForm) {
+        bulkUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handleBulkUpload();
+        });
+    }
 
-        if (fileUploadForm) {
-            fileUploadForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await handleFileUpload();
+    async function handleFileUpload() {
+        const studentId = document.getElementById('studentId').value;
+        const fileType = document.getElementById('fileType').value;
+        const fileInput = document.getElementById('file');
+        const file = fileInput.files[0];
+        const msgContainer = document.getElementById('messageContainer');
+
+        if (!file) {
+            msgContainer.innerHTML = '<div class="alert alert-error">Please select a file</div>';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('student_id', studentId);
+        formData.append('file_type', fileType);
+
+        try {
+            const response = await apiRequest('/admin/upload/file', {
+                method: 'POST',
+                body: formData
             });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || 'Upload failed');
+
+            msgContainer.innerHTML = '<div class="alert alert-success">File uploaded successfully!</div>';
+            document.getElementById('fileUploadForm').reset();
+        } catch (error) {
+            console.error("Upload error:", error);
+            msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+        }
+    }
+
+    async function handleBulkUpload() {
+        const fileInput = document.getElementById('bulkFile');
+        const file = fileInput.files[0];
+        const msgContainer = document.getElementById('bulkMessageContainer');
+
+        if (!file) {
+            msgContainer.innerHTML = '<div class="alert alert-error">Please select a CSV file</div>';
+            return;
         }
 
-        if (bulkUploadForm) {
-            bulkUploadForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await handleBulkUpload();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            msgContainer.innerHTML = '<div class="alert" style="background:var(--bg-secondary)">Uploading...</div>';
+
+            const response = await apiRequest('/admin/upload/data', {
+                method: 'POST',
+                body: formData
             });
-        }
 
-        async function handleFileUpload() {
-            const studentId = document.getElementById('studentId').value;
-            const fileType = document.getElementById('fileType').value;
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
-            const msgContainer = document.getElementById('messageContainer');
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || 'Import failed');
 
-            if (!file) {
-                msgContainer.innerHTML = '<div class="alert alert-error">Please select a file</div>';
-                return;
+            const summary = data.summary;
+            let msg = `Created: ${summary.created}, Updated: ${summary.updated}.`;
+            if (summary.errors && summary.errors.length > 0) {
+                msg += ` <br>Errors: ${summary.errors.length} (check console)`;
+                console.warn('Import errors:', summary.errors);
             }
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('student_id', studentId);
-            formData.append('file_type', fileType);
-
-            try {
-                const response = await apiRequest('/admin/upload/file', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Upload failed');
-
-                msgContainer.innerHTML = '<div class="alert alert-success">File uploaded successfully!</div>';
-                document.getElementById('fileUploadForm').reset();
-            } catch (error) {
-                console.error("Upload error:", error);
-                msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
-            }
+            msgContainer.innerHTML = `<div class="alert alert-success">${msg}</div>`;
+            document.getElementById('bulkUploadForm').reset();
+        } catch (error) {
+            console.error("Bulk upload error:", error);
+            msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
         }
-
-        async function handleBulkUpload() {
-            const fileInput = document.getElementById('bulkFile');
-            const file = fileInput.files[0];
-            const msgContainer = document.getElementById('bulkMessageContainer');
-
-            if (!file) {
-                msgContainer.innerHTML = '<div class="alert alert-error">Please select a CSV file</div>';
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                msgContainer.innerHTML = '<div class="alert" style="background:var(--bg-secondary)">Uploading...</div>';
-
-                const response = await apiRequest('/admin/upload/data', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Import failed');
-
-                const summary = data.summary;
-                let msg = `Created: ${summary.created}, Updated: ${summary.updated}.`;
-                if (summary.errors && summary.errors.length > 0) {
-                    msg += ` <br>Errors: ${summary.errors.length} (check console)`;
-                    console.warn('Import errors:', summary.errors);
-                }
-
-                msgContainer.innerHTML = `<div class="alert alert-success">${msg}</div>`;
-                document.getElementById('bulkUploadForm').reset();
-            } catch (error) {
-                console.error("Bulk upload error:", error);
-                msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
-            window.location.href = '/';
-        }
-    </script>
-</body>
-
-</html>
+    }
+</script>
+{% endblock %}

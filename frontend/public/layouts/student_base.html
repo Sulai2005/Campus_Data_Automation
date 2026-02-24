@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .navbar-user {
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <div class="navbar-content">
+        <a href="/student/dashboard" class="navbar-brand">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            University Management System
+        </a>
+
+        <div class="navbar-right">
+            <ul class="navbar-menu">
+                <li><a href="/student/dashboard"
+                        class="navbar-link {% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+                <li><a href="#" class="navbar-link" onclick="showComingSoon('Documents')">Documents</a></li>
+                <li><a href="/student/requests"
+                        class="navbar-link {% if active_page == 'requests' %}active{% endif %}">Requests</a></li>
+            </ul>
+
+            <!-- User Profile Dropdown -->
+            <div class="navbar-user" id="userMenu">
+                <button class="user-menu-btn" onclick="toggleUserMenu()">
+                    <div class="user-avatar" id="userAvatar">S</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">Student</span>
+                        <span class="user-role">Student</span>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </button>
+                <div class="user-dropdown">
+                    <a href="#" class="dropdown-item">My Profile</a>
+                    <a href="#" class="dropdown-item" onclick="showComingSoon('Settings')">Settings</a>
+                    <div style="border-top: 1px solid var(--border-color); margin: 0.25rem 0;"></div>
+                    <a href="#" class="dropdown-item danger" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    {% block student_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auth check
+    requireAuth();
+    requireRole('student');
+
+    function toggleUserMenu() {
+        const menu = document.getElementById('userMenu');
+        menu.classList.toggle('active');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('userMenu');
+        const btn = document.querySelector('.user-menu-btn');
+        if (menu && !menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+            menu.classList.remove('active');
+        }
+    });
+
+    function showComingSoon(feature) {
+        alert(`${feature} feature is coming soon in future modules!`);
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/';
+    }
+</script>
+{% endblock %}
