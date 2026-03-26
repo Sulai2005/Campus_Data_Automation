@@ -1,73 +1,360 @@
 {% extends "layouts/admin_base.html" %}
 
-{% block title %}Upload - University Management System{% endblock %}
+{% block title %}Data Ingestion - Campus Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Wizard Steps ── */
+    .wizard-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: 2.5rem;
+        counter-reset: step;
+    }
+    .wizard-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        position: relative;
+        flex: 1;
+        max-width: 160px;
+    }
+    .wizard-step::after {
+        content: '';
+        position: absolute;
+        top: 16px;
+        left: calc(50% + 20px);
+        right: calc(-50% + 20px);
+        height: 2px;
+        background: var(--border-color);
+        z-index: 0;
+    }
+    .wizard-step:last-child::after { display: none; }
+    .wizard-step .step-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        z-index: 1;
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+    }
+    .wizard-step.active .step-circle {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 0 0 4px rgba(var(--primary-rgb, 79, 70, 229), 0.15);
+    }
+    .wizard-step.done .step-circle {
+        background: var(--success-color);
+        border-color: var(--success-color);
+        color: white;
+    }
+    .wizard-step .step-label {
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        text-align: center;
+        font-weight: 500;
+    }
+    .wizard-step.active .step-label { color: var(--primary-color); font-weight: 700; }
+    .wizard-step.done .step-label { color: var(--success-color); }
+
+    /* ── Wizard Panels ── */
+    .wizard-panel { display: none; }
+    .wizard-panel.active { display: block; animation: fadeInUp 0.3s ease; }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Column Mapping Table ── */
+    .mapping-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .mapping-table th {
+        background: var(--bg-secondary);
+        padding: 0.6rem 1rem;
+        text-align: left;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .mapping-table td {
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+    }
+    .mapping-table tr:last-child td { border-bottom: none; }
+    .col-badge {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 0.25rem 0.65rem;
+        font-size: 0.82rem;
+        font-family: monospace;
+    }
+    .required-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--error-color, #ef4444);
+        margin-left: 4px;
+        vertical-align: middle;
+    }
+
+    /* ── Schema Select Cards ── */
+    .schema-select-wrapper { position: relative; }
+    .schema-info-panel {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin-top: 0.75rem;
+        display: none;
+    }
+    .schema-info-panel.visible { display: block; }
+    .schema-field-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+    .field-pill {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        background: var(--primary-light, #ede9fe);
+        color: var(--primary-color, #4f46e5);
+        font-weight: 500;
+    }
+    .field-pill.required {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    /* ── Result summary ── */
+    .result-stat { text-align: center; }
+    .result-stat .stat-num {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+    .result-stat .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.2rem;
+    }
+    .error-list {
+        max-height: 220px;
+        overflow-y: auto;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.82rem;
+    }
+    .error-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+        padding: 0.3rem 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+    .error-row:last-child { border-bottom: none; }
+    .error-row .err-row-badge {
+        background: #fee2e2;
+        color: #dc2626;
+        border-radius: 4px;
+        padding: 0.1rem 0.4rem;
+        font-size: 0.72rem;
+        white-space: nowrap;
+        font-weight: 600;
+    }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        padding: 2.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: var(--bg-secondary);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+        border-color: var(--primary-color);
+        background: rgba(79,70,229,0.04);
+    }
+    .drop-zone .drop-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .drop-zone .drop-text { color: var(--text-secondary); font-size: 0.9rem; }
+    .drop-zone .file-selected-name {
+        margin-top: 0.75rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
 
 {% block admin_content %}
-<div class="card mb-4" style="max-width: 800px; margin: 0 auto;">
-    <div class="card-header">
-        <h2>Upload Files & Data</h2>
-        <p>Upload student documents and bulk records.</p>
-    </div>
+<div style="max-width: 860px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <h2>📊 Data Ingestion Engine</h2>
+            <p>Schema-driven import: map your file columns to a defined schema and ingest data securely.</p>
+        </div>
 
-    <div id="messageContainer"></div>
+        <!-- Step Indicator -->
+        <div class="wizard-steps" id="wizardSteps">
+            <div class="wizard-step active" id="stepInd1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Choose Schema &amp; File</div>
+            </div>
+            <div class="wizard-step" id="stepInd2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Map Columns</div>
+            </div>
+            <div class="wizard-step" id="stepInd3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Result</div>
+            </div>
+        </div>
 
-    <!-- File Upload Section -->
-    <div style="margin-bottom: 2rem;">
-        <h3
-            style="margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-            Single Document Upload</h3>
-        <form id="fileUploadForm">
-            <div class="grid grid-2">
-                <div class="form-group">
-                    <label for="studentId" class="form-label">Student Database ID</label>
-                    <input type="number" id="studentId" class="form-input" placeholder="e.g. 1, 2, 3" required>
+        <div id="globalMsg"></div>
+
+        <!-- ════════════════════════════════════════
+             STEP 1: Schema Selection + File Upload
+        ════════════════════════════════════════ -->
+        <div class="wizard-panel active" id="panel1">
+            <div class="form-group">
+                <label class="form-label" for="schemaSelect">Select Schema <span style="color:var(--error-color,#ef4444)">*</span></label>
+                <select id="schemaSelect" class="form-select" style="max-width:400px;">
+                    <option value="">— Loading schemas... —</option>
+                </select>
+
+                <!-- Schema field preview -->
+                <div class="schema-info-panel" id="schemaInfoPanel">
+                    <div style="font-size:0.82rem; font-weight:600; margin-bottom:0.4rem; color:var(--text-secondary)">FIELDS IN THIS SCHEMA</div>
+                    <div class="schema-field-pills" id="schemaFieldPills"></div>
                 </div>
 
-                <div class="form-group">
-                    <label for="fileType" class="form-label">Document Type</label>
-                    <select id="fileType" class="form-select" required>
-                        <option value="">Select type...</option>
-                        <option value="photo">Photo</option>
-                        <option value="certificate">Certificate</option>
-                        <option value="id_proof">ID Proof</option>
-                        <option value="transcript">Transcript</option>
-                        <option value="other">Other</option>
-                    </select>
+                <div style="margin-top:0.75rem;">
+                    <a href="#" id="createSchemaLink" onclick="openCreateSchemaModal(); return false;"
+                        style="font-size: 0.84rem; color: var(--primary-color);">
+                        + Create new schema
+                    </a>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="file" class="form-label">Select File</label>
-                <input type="file" id="file" class="form-input" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" required
-                    style="padding: 0.5rem;">
-                <p class="text-secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
-                    Allowed: JPG, PNG, PDF, DOC, DOCX (Max 5MB)
+            <div class="form-group" style="margin-top:1.5rem;">
+                <label class="form-label">Upload File <span style="color:var(--error-color,#ef4444)">*</span></label>
+                <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <div class="drop-icon">📁</div>
+                    <div class="drop-text">Click to choose or drag &amp; drop a CSV / XLSX file</div>
+                    <div class="file-selected-name" id="selectedFileName"></div>
+                </div>
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" style="display:none">
+            </div>
+
+            <button class="btn btn-primary" id="step1Btn" style="margin-top:1rem;" onclick="handleStep1()">
+                Analyse File →
+            </button>
+        </div>
+
+        <!-- ════════════════════════════════════════
+             STEP 2: Column Mapping
+        ════════════════════════════════════════ -->
+        <div class="wizard-panel" id="panel2">
+            <div style="margin-bottom:1rem;">
+                <p style="font-size:0.9rem; color:var(--text-secondary);">
+                    Map each detected column from your file to the appropriate schema field.
+                    Unmapped columns will be ignored.
                 </p>
             </div>
 
-            <button type="submit" class="btn btn-primary">
-                Upload Document
-            </button>
-        </form>
-    </div>
-
-    <!-- Bulk Data Upload Section -->
-    <div style="border-top: 1px dashed var(--border-color); padding-top: 2rem; margin-top: 2rem;">
-        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Bulk Data Import</h3>
-        <p>Import multiple student records via CSV.</p>
-        <form id="bulkUploadForm">
-            <div class="form-group">
-                <label for="bulkFile" class="form-label">Select CSV File</label>
-                <input type="file" id="bulkFile" class="form-input" accept=".csv" required style="padding: 0.5rem;">
-                <p class="text-secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
-                    Columns: student_id, name, department, year, email (optional), phone, address
-                </p>
+            <div style="overflow-x: auto;">
+                <table class="mapping-table">
+                    <thead>
+                        <tr>
+                            <th>File Column</th>
+                            <th>→  Schema Field</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mappingTableBody"></tbody>
+                </table>
             </div>
-            <button type="submit" class="btn btn-secondary">
-                Import Data
-            </button>
-            <div id="bulkMessageContainer"></div>
-        </form>
+
+            <div style="display:flex; gap:1rem; margin-top:1.5rem; flex-wrap:wrap;">
+                <button class="btn btn-outline" onclick="goToStep(1)">← Back</button>
+                <button class="btn btn-primary" id="step2Btn" onclick="handleStep2()">
+                    Ingest Data →
+                </button>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════
+             STEP 3: Result
+        ════════════════════════════════════════ -->
+        <div class="wizard-panel" id="panel3">
+            <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:1.5rem; margin-bottom:2rem;" id="resultStats"></div>
+
+            <div id="resultErrorSection" style="display:none;">
+                <h4 style="margin-bottom:0.5rem; font-size:0.9rem;">Row Errors</h4>
+                <div class="error-list" id="resultErrors"></div>
+            </div>
+
+            <div id="resultWarningSection" style="display:none; margin-top:1rem;">
+                <div id="resultWarnings"></div>
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:2rem; flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="resetWizard()">Import Another File</button>
+                <a href="/admin/students" class="btn btn-outline" style="text-decoration:none;">View Students</a>
+            </div>
+        </div>
+    </div><!-- /card -->
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     CREATE SCHEMA MODAL
+════════════════════════════════════════════════════════ -->
+<div id="schemaModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; align-items:center; justify-content:center;">
+    <div class="card" style="width:100%; max-width:600px; max-height:90vh; overflow-y:auto; margin:1rem;">
+        <div class="card-header" style="display:flex; align-items:center; justify-content:space-between;">
+            <h3 style="margin:0;">Create New Schema</h3>
+            <button onclick="closeCreateSchemaModal()" style="background:none; border:none; cursor:pointer; font-size:1.4rem; color:var(--text-secondary);">✕</button>
+        </div>
+
+        <div class="form-group" style="margin-top:1rem;">
+            <label class="form-label">Schema Name <span style="color:var(--error-color,#ef4444)">*</span></label>
+            <input type="text" id="newSchemaName" class="form-input" placeholder="e.g. Exam Results 2025">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Description (optional)</label>
+            <input type="text" id="newSchemaDesc" class="form-input" placeholder="Brief description">
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin:1rem 0 0.5rem;">
+            <strong style="font-size:0.9rem;">Fields</strong>
+            <button class="btn btn-outline" onclick="addFieldRow()" style="padding:0.3rem 0.8rem; font-size:0.8rem;">+ Add Field</button>
+        </div>
+
+        <div id="fieldsContainer"></div>
+
+        <div id="modalMsg" style="margin-top:0.75rem;"></div>
+
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <button class="btn btn-primary" id="saveSchemaBtn" onclick="saveSchema()">Save Schema</button>
+            <button class="btn btn-outline" onclick="closeCreateSchemaModal()">Cancel</button>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -75,94 +362,415 @@
 {% block extra_scripts %}
 {{ super() }}
 <script>
-    const fileUploadForm = document.getElementById('fileUploadForm');
-    const bulkUploadForm = document.getElementById('bulkUploadForm');
+    // ══════════════════════════════════════════════════════
+    //  STATE
+    // ══════════════════════════════════════════════════════
+    let currentStep = 1;
+    let sessionId   = null;
+    let schemaId    = null;
+    let schemaData  = null;  // full schema object with fields
+    let allSchemas  = [];    // cached from GET /api/ingestion/schemas
 
-    if (fileUploadForm) {
-        fileUploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await handleFileUpload();
-        });
+    // ══════════════════════════════════════════════════════
+    //  INIT
+    // ══════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSchemas();
+        setupDropZone();
+        // Add first field row in modal
+        addFieldRow();
+    });
+
+    // ══════════════════════════════════════════════════════
+    //  SCHEMA LOADING
+    // ══════════════════════════════════════════════════════
+    async function loadSchemas() {
+        try {
+            const res = await apiRequest('/ingestion/schemas');
+            allSchemas = await res.json();
+            const sel = document.getElementById('schemaSelect');
+            sel.innerHTML = '<option value="">— Select a schema —</option>';
+            allSchemas.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                sel.appendChild(opt);
+            });
+            sel.addEventListener('change', onSchemaChange);
+        } catch (e) {
+            showGlobal('Could not load schemas. Make sure you are logged in.', 'error');
+        }
     }
 
-    if (bulkUploadForm) {
-        bulkUploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await handleBulkUpload();
-        });
+    function onSchemaChange() {
+        const id = parseInt(document.getElementById('schemaSelect').value);
+        const panel = document.getElementById('schemaInfoPanel');
+        const pills = document.getElementById('schemaFieldPills');
+        if (!id) { panel.classList.remove('visible'); return; }
+
+        schemaData = allSchemas.find(s => s.id === id) || null;
+        if (!schemaData) return;
+        pills.innerHTML = schemaData.fields.map(f =>
+            `<span class="field-pill ${f.is_required ? 'required' : ''}" title="${f.data_type}${f.is_required ? ' (required)' : ''}">
+                ${f.field_name}<span style="opacity:0.6; font-size:0.68rem;"> (${f.data_type})</span>${f.is_required ? '<span class="required-dot" title="required"></span>' : ''}
+            </span>`
+        ).join('');
+        panel.classList.add('visible');
     }
 
-    async function handleFileUpload() {
-        const studentId = document.getElementById('studentId').value;
-        const fileType = document.getElementById('fileType').value;
-        const fileInput = document.getElementById('file');
-        const file = fileInput.files[0];
-        const msgContainer = document.getElementById('messageContainer');
+    // ══════════════════════════════════════════════════════
+    //  DROP ZONE
+    // ══════════════════════════════════════════════════════
+    function setupDropZone() {
+        const zone = document.getElementById('dropZone');
+        const input = document.getElementById('fileInput');
+        input.addEventListener('change', () => {
+            if (input.files[0]) updateFileDisplay(input.files[0].name);
+        });
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) {
+                input.files = e.dataTransfer.files;
+                updateFileDisplay(input.files[0].name);
+            }
+        });
+    }
+    function updateFileDisplay(name) {
+        document.getElementById('selectedFileName').textContent = '📄 ' + name;
+    }
 
-        if (!file) {
-            msgContainer.innerHTML = '<div class="alert alert-error">Please select a file</div>';
+    // ══════════════════════════════════════════════════════
+    //  STEP 1: Upload file
+    // ══════════════════════════════════════════════════════
+    async function handleStep1() {
+        clearGlobal();
+        const selSchemaId = parseInt(document.getElementById('schemaSelect').value);
+        const file = document.getElementById('fileInput').files[0];
+
+        if (!selSchemaId) { showGlobal('Please select a schema.', 'error'); return; }
+        if (!file)        { showGlobal('Please choose a file to upload.', 'error'); return; }
+
+        const btn = document.getElementById('step1Btn');
+        btn.disabled = true; btn.textContent = 'Analysing...';
+
+        try {
+            const fd = new FormData();
+            fd.append('schema_id', selSchemaId);
+            fd.append('file', file);
+
+            const res = await apiRequest('/ingestion/upload', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (!res.ok) throw new Error(extractError(data));
+
+            sessionId = data.session_id;
+            schemaId  = data.schema_id;
+            schemaData = allSchemas.find(s => s.id === schemaId) || { fields: data.schema_fields };
+
+            buildMappingTable(data.detected_columns, data.schema_fields);
+            goToStep(2);
+        } catch (e) {
+            showGlobal(e.message, 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Analyse File →';
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  STEP 2: Build mapping table
+    // ══════════════════════════════════════════════════════
+    function buildMappingTable(columns, fields) {
+        const tbody = document.getElementById('mappingTableBody');
+        const step2Btn = document.getElementById('step2Btn');
+        tbody.innerHTML = '';
+
+        if (!columns || columns.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="2"><div class="alert alert-error" style="margin: 0;">No columns detected. The uploaded file appears to be empty or missing headers. Please upload a valid file with data columns to map.</div></td></tr>`;
+            if (step2Btn) step2Btn.disabled = true;
             return;
         }
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('student_id', studentId);
-        formData.append('file_type', fileType);
+        if (step2Btn) step2Btn.disabled = false;
 
-        try {
-            const response = await apiRequest('/admin/upload/file', {
-                method: 'POST',
-                body: formData
-            });
+        const fieldOptions = fields.map(f =>
+            `<option value="${f.field_name}">${f.field_name} (${f.data_type})${f.is_required ? ' *' : ''}</option>`
+        ).join('');
 
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail || 'Upload failed');
+        columns.forEach((col, i) => {
+            // Auto-suggest: lowercase match
+            const colLower = col.toLowerCase().replace(/[\s_-]/g, '');
+            const suggested = fields.find(f => f.field_name.toLowerCase().replace(/[\s_-]/g, '') === colLower);
 
-            msgContainer.innerHTML = '<div class="alert alert-success">File uploaded successfully!</div>';
-            document.getElementById('fileUploadForm').reset();
-        } catch (error) {
-            console.error("Upload error:", error);
-            msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
-        }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="col-badge">${escHtml(col)}</span></td>
+                <td>
+                    <select class="form-select mapping-select" data-col="${escHtml(col)}" style="max-width:260px;">
+                        <option value="">— skip this column —</option>
+                        ${fieldOptions}
+                    </select>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            if (suggested) {
+                tr.querySelector('select').value = suggested.field_name;
+            }
+        });
     }
 
-    async function handleBulkUpload() {
-        const fileInput = document.getElementById('bulkFile');
-        const file = fileInput.files[0];
-        const msgContainer = document.getElementById('bulkMessageContainer');
+    // ══════════════════════════════════════════════════════
+    //  STEP 2: Submit mapping
+    // ══════════════════════════════════════════════════════
+    async function handleStep2() {
+        clearGlobal();
+        const mapping = {};
+        document.querySelectorAll('.mapping-select').forEach(sel => {
+            if (sel.value) mapping[sel.dataset.col] = sel.value;
+        });
 
-        if (!file) {
-            msgContainer.innerHTML = '<div class="alert alert-error">Please select a CSV file</div>';
-            return;
+        if (Object.keys(mapping).length === 0) {
+            showGlobal('Please map at least one column.', 'error'); return;
         }
 
-        const formData = new FormData();
-        formData.append('file', file);
+        const btn = document.getElementById('step2Btn');
+        btn.disabled = true; btn.textContent = 'Analyzing...';
+        let dupMode = "skip";
 
         try {
-            msgContainer.innerHTML = '<div class="alert" style="background:var(--bg-secondary)">Uploading...</div>';
-
-            const response = await apiRequest('/admin/upload/data', {
+            // First run preview mode to find duplicates
+            const previewRes = await apiRequest('/ingestion/upload/map', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, schema_id: schemaId, mapping, duplicate_mode: "preview" })
             });
+            const previewData = await previewRes.json();
+            if (!previewRes.ok) throw new Error(extractError(previewData));
 
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail || 'Import failed');
-
-            const summary = data.summary;
-            let msg = `Created: ${summary.created}, Updated: ${summary.updated}.`;
-            if (summary.errors && summary.errors.length > 0) {
-                msg += ` <br>Errors: ${summary.errors.length} (check console)`;
-                console.warn('Import errors:', summary.errors);
+            if (previewData.duplicates_found > 0) {
+                const choice = prompt(`We found ${previewData.duplicates_found} duplicate records in the database based on unique fields.\n\nType "update" to update them with new data.\nType "skip" to ignore them.\nType "error" to cancel.`, "update");
+                if (choice === null) {
+                    btn.disabled = false; btn.textContent = 'Ingest Data →';
+                    return; // user cancelled prompt
+                }
+                dupMode = choice.toLowerCase().trim();
+                if (!['update', 'skip', 'error'].includes(dupMode)) dupMode = 'error';
             }
 
-            msgContainer.innerHTML = `<div class="alert alert-success">${msg}</div>`;
-            document.getElementById('bulkUploadForm').reset();
-        } catch (error) {
-            console.error("Bulk upload error:", error);
-            msgContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            btn.textContent = 'Ingesting...';
+
+            const res = await apiRequest('/ingestion/upload/map', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, schema_id: schemaId, mapping, duplicate_mode: dupMode })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(extractError(data));
+
+            showResult(data);
+            goToStep(3);
+        } catch (e) {
+            showGlobal(e.message, 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Ingest Data →';
         }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  STEP 3: Show results
+    // ══════════════════════════════════════════════════════
+    function showResult(data) {
+        const stats = document.getElementById('resultStats');
+        stats.innerHTML = `
+            <div class="result-stat" style="flex:1;">
+                <div class="stat-num" style="color:var(--success-color)">${data.rows_inserted}</div>
+                <div class="stat-label">Inserted</div>
+            </div>
+            <div class="result-stat" style="flex:1;">
+                <div class="stat-num" style="color:var(--primary-color)">${data.rows_updated || 0}</div>
+                <div class="stat-label">Updated</div>
+            </div>
+            <div class="result-stat" style="flex:1;">
+                <div class="stat-num" style="color:var(--error-color, #ef4444)">${data.rows_skipped || 0}</div>
+                <div class="stat-label">Skipped (${data.duplicates_found || 0} dups)</div>
+            </div>
+            <div class="result-stat" style="flex:1;">
+                <div class="stat-num" style="color:var(--text-secondary)">${data.audit_log_id ? '✓' : '—'}</div>
+                <div class="stat-label">Audit Logged</div>
+            </div>
+        `;
+
+        const errSec = document.getElementById('resultErrorSection');
+        if (data.errors && data.errors.length > 0) {
+            errSec.style.display = 'block';
+            document.getElementById('resultErrors').innerHTML = data.errors.map(e =>
+                `<div class="error-row">
+                    <span class="err-row-badge">Row ${e.row_index}</span>
+                    <span><strong>${escHtml(e.column)}</strong>: ${escHtml(e.message)}</span>
+                </div>`
+            ).join('');
+        } else {
+            errSec.style.display = 'none';
+        }
+
+        const warnSec = document.getElementById('resultWarningSection');
+        if (data.warnings && data.warnings.length > 0) {
+            warnSec.style.display = 'block';
+            document.getElementById('resultWarnings').innerHTML = data.warnings.map(w =>
+                `<div class="alert" style="background:var(--bg-secondary); font-size:0.85rem;">⚠️ ${escHtml(w)}</div>`
+            ).join('');
+        } else {
+            warnSec.style.display = 'none';
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  WIZARD NAVIGATION
+    // ══════════════════════════════════════════════════════
+    function goToStep(n) {
+        [1,2,3].forEach(i => {
+            document.getElementById('panel' + i).classList.toggle('active', i === n);
+            const ind = document.getElementById('stepInd' + i);
+            ind.classList.remove('active', 'done');
+            if (i === n) ind.classList.add('active');
+            else if (i < n) ind.classList.add('done');
+            // Update circle label for done steps
+            ind.querySelector('.step-circle').textContent = i < n ? '✓' : i;
+        });
+        currentStep = n;
+    }
+
+    function resetWizard() {
+        sessionId = null; schemaId = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('selectedFileName').textContent = '';
+        document.getElementById('schemaSelect').value = '';
+        document.getElementById('schemaInfoPanel').classList.remove('visible');
+        clearGlobal();
+        // Reset step indicators
+        [1,2,3].forEach(i => {
+            const ind = document.getElementById('stepInd' + i);
+            ind.classList.remove('active', 'done');
+            ind.querySelector('.step-circle').textContent = i;
+        });
+        goToStep(1);
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  CREATE SCHEMA MODAL
+    // ══════════════════════════════════════════════════════
+    let fieldRowCount = 0;
+
+    function openCreateSchemaModal() {
+        document.getElementById('schemaModal').style.display = 'flex';
+        document.getElementById('newSchemaName').value = '';
+        document.getElementById('newSchemaDesc').value = '';
+        document.getElementById('fieldsContainer').innerHTML = '';
+        document.getElementById('modalMsg').innerHTML = '';
+        fieldRowCount = 0;
+        addFieldRow();
+    }
+    function closeCreateSchemaModal() {
+        document.getElementById('schemaModal').style.display = 'none';
+    }
+
+    function addFieldRow() {
+        const id = ++fieldRowCount;
+        const row = document.createElement('div');
+        row.id = 'fieldRow' + id;
+        row.style.cssText = 'display:grid; grid-template-columns:1fr 130px 100px auto; gap:0.5rem; align-items:center; margin-bottom:0.6rem;';
+        row.innerHTML = `
+            <input type="text" class="form-input field-name-inp" placeholder="Field name" style="font-size:0.85rem;">
+            <select class="form-select field-type-sel" style="font-size:0.85rem;">
+                <option value="string">string</option>
+                <option value="int">int</option>
+                <option value="float">float</option>
+                <option value="date">date</option>
+                <option value="boolean">boolean</option>
+            </select>
+            <label style="display:flex; align-items:center; gap:0.3rem; font-size:0.82rem; cursor:pointer;">
+                <input type="checkbox" class="field-req-chk"> Required
+            </label>
+            <button onclick="document.getElementById('fieldRow${id}').remove()"
+                style="background:none; border:1px solid var(--border-color); border-radius:6px; cursor:pointer; padding:0.3rem 0.5rem; color:var(--text-secondary);">✕</button>
+        `;
+        document.getElementById('fieldsContainer').appendChild(row);
+    }
+
+    async function saveSchema() {
+        const name = document.getElementById('newSchemaName').value.trim();
+        const desc = document.getElementById('newSchemaDesc').value.trim();
+        const msgEl = document.getElementById('modalMsg');
+        msgEl.innerHTML = '';
+
+        if (!name) { msgEl.innerHTML = '<div class="alert alert-error">Schema name is required.</div>'; return; }
+
+        const fields = [];
+        document.querySelectorAll('#fieldsContainer > div').forEach(row => {
+            const fn = row.querySelector('.field-name-inp').value.trim();
+            if (!fn) return;
+            fields.push({
+                field_name: fn,
+                data_type: row.querySelector('.field-type-sel').value,
+                is_required: row.querySelector('.field-req-chk').checked
+            });
+        });
+
+        if (fields.length === 0) { msgEl.innerHTML = '<div class="alert alert-error">Add at least one field.</div>'; return; }
+
+        const btn = document.getElementById('saveSchemaBtn');
+        btn.disabled = true; btn.textContent = 'Saving...';
+
+        try {
+            const res = await apiRequest('/ingestion/schemas', {
+                method: 'POST',
+                body: JSON.stringify({ name, description: desc || null, fields })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(extractError(data));
+
+            closeCreateSchemaModal();
+            await loadSchemas();
+            // Auto-select the new schema
+            const sel = document.getElementById('schemaSelect');
+            sel.value = data.id;
+            sel.dispatchEvent(new Event('change'));
+            showGlobal(`Schema "${data.name}" created with ${data.fields.length} field(s).`, 'success');
+        } catch (e) {
+            msgEl.innerHTML = `<div class="alert alert-error">${escHtml(e.message)}</div>`;
+        } finally {
+            btn.disabled = false; btn.textContent = 'Save Schema';
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  UTILS
+    // ══════════════════════════════════════════════════════
+    function showGlobal(msg, type = 'info') {
+        const cls = type === 'error' ? 'alert-error' : type === 'success' ? 'alert-success' : '';
+        document.getElementById('globalMsg').innerHTML = `<div class="alert ${cls}" style="margin-bottom:1rem;">${escHtml(msg)}</div>`;
+    }
+    function clearGlobal() { document.getElementById('globalMsg').innerHTML = ''; }
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    /**
+     * Extracts a human-readable error string from FastAPI responses.
+     * FastAPI 422 returns detail as an array: [{loc, msg, type}, ...]
+     * Other errors return detail as a string.
+     */
+    function extractError(data) {
+        if (!data || !data.detail) return 'Unknown error';
+        if (typeof data.detail === 'string') return data.detail;
+        if (Array.isArray(data.detail)) {
+            return data.detail.map(e => {
+                const field = e.loc ? e.loc.join(' → ') : '';
+                return field ? `${field}: ${e.msg}` : e.msg;
+            }).join('\n');
+        }
+        return JSON.stringify(data.detail);
     }
 </script>
 {% endblock %}

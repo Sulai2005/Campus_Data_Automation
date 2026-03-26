@@ -61,18 +61,18 @@ function logout() {
 async function apiRequest(endpoint, options = {}) {
     const token = getToken();
 
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+    // Don't set Content-Type for FormData – browser sets it automatically with the boundary
+    const isFormData = options.body instanceof FormData;
+
+    const defaultHeaders = {
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(token && { 'Authorization': `Bearer ${token}` })
     };
 
     const mergedOptions = {
-        ...defaultOptions,
         ...options,
         headers: {
-            ...defaultOptions.headers,
+            ...defaultHeaders,
             ...options.headers
         }
     };

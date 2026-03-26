@@ -1,0 +1,84 @@
+# CDWAS Normalized Ingestion Engine Architecture
+
+This document provides a comprehensive end-to-end architectural walkthrough of the newly upgraded Dynamic Data Ingestion Engine. You have successfully transformed a flat CSV importer into a **Metadata-Driven ETL (Extract, Transform, Load) Pipeline**.
+
+This flow proves exactly how the system is entirely dynamic, and **not a single table or mapping is hardcoded**.
+
+## End-to-End Architectural Flow
+
+```mermaid
+sequenceDiagram
+    participant User as Administrator
+    participant Frontend as Data Ingestion UI
+    participant Routers as Ingestion Router
+    participant NormService as Normalization Service
+    participant Database as Core SQL Tables
+    participant AuditLog as JSON Audit Store
+
+    User->>Frontend: Creates Dynamic Schema (e.g. "Core Student Database")
+    Frontend->>Database: Saves schema config (target_table, is_foreign_key)
+    User->>Frontend: Uploads CSV Spreadsheet
+    Frontend->>Routers: Step 1: Detect Columns
+    Routers-->>Frontend: Return available CSV headers
+    User->>Frontend: Maps CSV Headers to Schema Fields
+    Frontend->>Routers: Step 2: "Ingest Data" -> Pre-Analysis Preview
+    
+    note over Frontend,Routers: Preview Mode (dry run)
+    Routers->>NormService: Validate Foreign Keys & Uniqueness Check
+    NormService-->>Frontend: "Found 23 Duplicates"
+    User->>Frontend: Selects Duplicate Resolution ('update', 'skip', 'error')
+    
+    note over User,Database: Execution Mode
+    Frontend->>Routers: Send final mapping + `duplicate_mode="update"`
+    
+    loop For each Row in Spreadsheet
+        Routers->>NormService: Build Normalized Dict
+        
+        alt Schema Field is marked 'is_foreign_key=True'
+            NormService->>Database: Look up value (e.g., "CSE" in departments)
+            Database-->>NormService: Return existing Primary Key (department_id=1)
+            opt If "CSE" does not exist
+                NormService->>Database: Create "CSE" in target table
+                Database-->>NormService: Return new Primary Key (department_id=2)
+            end
+            NormService->>NormService: Replaces string "CSE" with integer ID
+        end
+        
+        Routers->>AuditLog: Store completely raw parsed JSON safely
+        
+        NormService->>Database: Dynamically perform SQL Insert/Update into `target_table`
+    end
+    
+    Routers-->>Frontend: Return IngestResult (Inserted, Updated, Skipped Counts)
+```
+
+## How It Works (Proof of No Hardcoding)
+
+Here is a breakdown of the three key components proving that the system relies entirely on configuration, not hardcoded Python strings:
+
+### 1. [database/models.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py) (The Metadata Model)
+We upgraded the [DataSchema](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#95-109) and [SchemaField](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#111-131) database classes. This allows Admins to configure how data moves:
+- **`target_table`**: Tells the system precisely which final SQL table it should dynamically push data into.
+- **`is_foreign_key`**, **`reference_table`**, **`reference_field`**, **`target_column`**: Tells the system that instead of just inserting a string, it needs to perform a relational lookup in another table first.
+
+### 2. [routers/ingestion.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/routers/ingestion.py) (The API Controller)
+The API accepts whatever JSON the frontend sends. It receives an instruction like:
+`"Map column 'Student Reg' to field 'student_id'"`
+The router does not care what the fields are called. It just passes the dictionary of data to the core engine.
+
+### 3. [services/normalization_service.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/services/normalization_service.py) (The Engine)
+This is the heart of the dynamic logic.
+When the flow reaches [perform_relational_upsert()](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/services/normalization_service.py#41-126), it uses Native SQLAlchemy Table Reflection:
+```python
+# The Engine literally looks inside the database to figure out what columns the table actually has
+metadata = MetaData()
+table = Table(target_table, metadata, autoload_with=db.bind)
+
+# It automatically throws away columns from the CSV that don't belong in the table
+valid_cols = set(table.columns.keys())
+row_to_insert = {k: v for k, v in normalized_row.items() if k in valid_cols}
+```
+If you pass the engine `target_table = "exam_scores"`, it will automatically dynamically reflect the `exam_scores` table, realize it has [id](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/services/ingestion_service.py#179-281), `student_id`, and `grade` columns, and surgically insert the data.
+
+**The only specific domain fallback in the system:**
+The system is entirely generic, with exactly *one* custom rule remaining for safety: `students.email`. Because this specific backend enforces `email` as a uniquely required NOT NULL column, if you upload a raw spreadsheet of students that doesn't include an `email` column, the ingestion engine falls back to generating a fake `{student_id}@placeholder.com` for them so that the SQL insertion does not fatally crash. Everything else is 100% dynamic!

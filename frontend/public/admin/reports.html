@@ -111,6 +111,16 @@
 
     <!-- Custom Report Options -->
     <div id="customReportOptions" style="display: none;">
+        
+        <div class="form-group mb-4">
+            <label class="form-label" style="color: var(--primary-color);">Select Target Table/Schema</label>
+            <select id="reportSchemaId" class="form-select" onchange="handleSchemaChange()" style="border-left: 3px solid var(--primary-color);">
+                <option value="">Core Student Database (Default)</option>
+                <!-- Dynamically populated from backend -->
+            </select>
+            <small style="color: var(--text-secondary); display: block; margin-top: 0.25rem;">Select which dynamically generated Table you want to query.</small>
+        </div>
+        
         <div class="form-group">
             <label class="form-label">Select Columns to Include</label>
             <div class="column-selector" id="columnSelector">
@@ -229,8 +239,40 @@
     // Initialize page
     document.addEventListener('DOMContentLoaded', () => {
         loadDepartments();
-        loadAvailableColumns();
+        loadAvailableSchemas();
+        loadAvailableColumns(); // Will load default core schema
     });
+    
+    // Load available dynamic schemas
+    async function loadAvailableSchemas() {
+        try {
+            const response = await apiRequest('/ingestion/schemas');
+            const data = await response.json();
+            
+            const schemaSelect = document.getElementById('reportSchemaId');
+            
+            // Filter schemas that actually have target tables
+            const validSchemas = data.filter(s => s.target_table);
+            
+            validSchemas.forEach(schema => {
+                // Skip Core Student Database because it's already the default empty option
+                if (schema.name !== 'Core Student Database') {
+                    const option = document.createElement('option');
+                    option.value = schema.id;
+                    option.textContent = schema.name;
+                    schemaSelect.appendChild(option);
+                }
+            });
+            
+        } catch (error) {
+            console.error('Failed to load schemas:', error);
+        }
+    }
+    
+    function handleSchemaChange() {
+        const schemaId = document.getElementById('reportSchemaId').value;
+        loadAvailableColumns(schemaId);
+    }
 
     // Load departments dynamically from backend
     async function loadDepartments() {
@@ -263,15 +305,23 @@
     }
 
     // Load available columns dynamically from backend
-    async function loadAvailableColumns() {
+    async function loadAvailableColumns(schemaId = '') {
         try {
-            const response = await apiRequest('/reports/columns');
+            const columnSelector = document.getElementById('columnSelector');
+            columnSelector.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-secondary);">Loading columns...</div>';
+            
+            let endpoint = '/reports/columns';
+            if (schemaId) {
+                endpoint += `?schema_id=${schemaId}`;
+            }
+            
+            const response = await apiRequest(endpoint);
             const data = await response.json();
 
             availableColumns = data.columns || [];
 
             // Populate column selector
-            const columnSelector = document.getElementById('columnSelector');
+            // columnSelector is already declared above
             columnSelector.innerHTML = '';
 
             availableColumns.forEach((col, index) => {
@@ -409,7 +459,12 @@
         generateBtn.textContent = 'Generating...';
 
         try {
+            const schemaId = document.getElementById('reportSchemaId').value;
             let endpoint = '/reports/custom?columns=' + selectedColumns.join(',');
+            
+            if (schemaId) {
+                endpoint += `&schema_id=${schemaId}`;
+            }
             if (department) endpoint += `&department=${encodeURIComponent(department)}`;
             if (year) endpoint += `&year=${year}`;
             if (emptyColumns > 0) endpoint += `&empty_columns=${emptyColumns}`;
