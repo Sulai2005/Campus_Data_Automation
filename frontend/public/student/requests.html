@@ -1,0 +1,245 @@
+{% extends "layouts/student_base.html" %}
+
+{% block title %}Update Requests - Student Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .badge-warning {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-success {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .capitalize {
+        text-transform: capitalize;
+    }
+</style>
+{% endblock %}
+
+{% block student_content %}
+<div class="header-section">
+    <div>
+        <h1>Update Requests</h1>
+        <p class="subtitle">Request changes to your profile information</p>
+    </div>
+    <button class="btn btn-primary" onclick="openRequestModal()">New Request</button>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>My Requests History</h3>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>New Value</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Feedback</th>
+                </tr>
+            </thead>
+            <tbody id="requestsTableBody">
+                <tr>
+                    <td colspan="6" style="text-align: center;">Loading requests...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- New Request Modal -->
+<div id="requestModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">New Update Request</h3>
+            <button class="modal-close" onclick="closeRequestModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="requestForm">
+                <div class="form-group">
+                    <label class="form-label">Field to Update</label>
+                    <select id="fieldName" class="form-select" onchange="updateCurrentValue()" required>
+                        <option value="">Select Field</option>
+                        <option value="name">Name</option>
+                        <option value="department">Department</option>
+                        <option value="year">Year</option>
+                        <option value="phone">Phone Number</option>
+                        <option value="address">Address</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Value</label>
+                    <input type="text" id="currentValue" class="form-input"
+                        style="background-color: #f1f5f9; color: var(--text-secondary);" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Value</label>
+                    <input type="text" id="newValue" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reason for Change</label>
+                    <textarea id="reason" class="form-input" rows="3" required
+                        placeholder="e.g., Correction, Moved to new address, etc."></textarea>
+                </div>
+                <div id="formError" class="alert alert-error" style="display: none;"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeRequestModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitRequest()">Submit Request</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ super() }}
+<script>
+    let studentProfile = {};
+
+    // Load data on page load
+    loadData();
+
+    async function loadData() {
+        await Promise.all([loadRequests(), loadProfile()]);
+    }
+
+    async function loadProfile() {
+        try {
+            const response = await apiRequest('/student/profile');
+            studentProfile = await response.json();
+
+            // Update header name if available
+            const headerUserName = document.getElementById('userName');
+            if (headerUserName && studentProfile.name) {
+                headerUserName.textContent = studentProfile.name;
+            }
+            const headerUserAvatar = document.getElementById('userAvatar');
+            if (headerUserAvatar && studentProfile.name) {
+                const initials = studentProfile.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                headerUserAvatar.textContent = initials;
+            }
+        } catch (error) {
+            console.error('Failed to load profile:', error);
+        }
+    }
+
+    function updateCurrentValue() {
+        const field = document.getElementById('fieldName').value;
+        const currentValInput = document.getElementById('currentValue');
+
+        if (field && studentProfile[field]) {
+            currentValInput.value = studentProfile[field];
+        } else if (field) {
+            currentValInput.value = '(Not set)';
+        } else {
+            currentValInput.value = '';
+        }
+    }
+
+    async function loadRequests() {
+        try {
+            const response = await apiRequest('/requests/my');
+            const requests = await response.json();
+
+            const tbody = document.getElementById('requestsTableBody');
+            tbody.innerHTML = '';
+
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No requests found</td></tr>';
+                return;
+            }
+
+            requests.forEach(req => {
+                const date = new Date(req.requested_at).toLocaleDateString();
+                let statusBadge = '';
+                if (req.status === 'pending') statusBadge = '<span class="badge badge-warning">Pending</span>';
+                else if (req.status === 'approved') statusBadge = '<span class="badge badge-success">Approved</span>';
+                else if (req.status === 'rejected') statusBadge = '<span class="badge badge-error">Rejected</span>';
+
+                const row = `
+                <tr>
+                    <td class="capitalize">${req.field_name}</td>
+                    <td>${req.new_value}</td>
+                    <td>${req.reason}</td>
+                    <td>${date}</td>
+                    <td>${statusBadge}</td>
+                    <td>${req.feedback || '-'}</td>
+                </tr>
+            `;
+                tbody.innerHTML += row;
+            });
+        } catch (error) {
+            console.error('Failed to load requests:', error);
+            document.getElementById('requestsTableBody').innerHTML =
+                '<tr><td colspan="6" style="text-align: center; color: var(--error-color);">Failed to load requests</td></tr>';
+        }
+    }
+
+    function openRequestModal() {
+        document.getElementById('requestModal').classList.add('active');
+        document.getElementById('formError').style.display = 'none';
+        document.getElementById('requestForm').reset();
+        document.getElementById('currentValue').value = ''; // Reset current value field
+    }
+
+    function closeRequestModal() {
+        document.getElementById('requestModal').classList.remove('active');
+    }
+
+    async function submitRequest() {
+        const fieldName = document.getElementById('fieldName').value;
+        const newValue = document.getElementById('newValue').value;
+        const reason = document.getElementById('reason').value;
+        const errorDiv = document.getElementById('formError');
+
+        if (!fieldName || !newValue || !reason) {
+            errorDiv.textContent = 'Please fill in all fields';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        try {
+            const response = await apiRequest('/requests/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    field_name: fieldName,
+                    new_value: newValue,
+                    reason: reason
+                })
+            });
+
+            if (response.ok) {
+                closeRequestModal();
+                loadRequests(); // Refresh list
+                alert('Request submitted successfully!');
+            } else {
+                const data = await response.json();
+                throw new Error(data.detail || 'Failed to submit request');
+            }
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

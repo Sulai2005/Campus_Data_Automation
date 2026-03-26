@@ -1,0 +1,78 @@
+# Database Flow & Data Management
+
+This document explains how the database is structured, how the data flows within the system, how the initial test data was added, and the exact steps you need to take to insert entirely new data into the system.
+
+## 1. The Database Architecture (How Data is Modeled)
+
+The backend uses **SQLAlchemy ORM** (Object-Relational Mapping). This means instead of writing raw SQL queries, the tables are defined as Python classes in [backend/database/models.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py). 
+
+### The Core Tables
+- **[Student](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#19-38) ([students](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/routers/admin.py#153-187))**: This is the central table. It stores the academic and personal details: [student_id](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#78-96), `name`, [email](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#110-113), `department`, `year`, [phone](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#98-101), and [address](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#103-108). 
+- **[User](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#8-17) (`users`)**: Handles authentication. It stores [email](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#110-113), `hashed_password`, and `role`. It is entirely separate from the [Student](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#19-38) table to allow admins and staff to have accounts without needing a student profile. They are loosely linked by the [email](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#110-113) field.
+- **[StudentDocument](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#40-54) (`student_documents`)**: A one-to-many relationship with [Student](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#19-38). If a student uploads a photo or a transcript, the actual file goes into the `uploads/` folder, but the *metadata* (file path, file type) is stored here, linked via a Foreign Key ([student_id](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#78-96)).
+- **[UpdateRequest](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#71-90) (`update_requests`)**: If a student wants to change their phone number, it doesn't happen instantly. A record goes here with a status of `pending`. An admin reviews it and marks it `approved`, at which point the [Student](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#19-38) table is actually updated.
+
+### Database Initialization
+When [backend/main.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/main.py) runs, it executes:
+```python
+models.Base.metadata.create_all(bind=engine)
+```
+This command checks the SQLite file ([campus.db](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/campus.db)) and automatically creates any tables that do not exist yet.
+
+---
+
+## 2. How the Initial Data Was Appended
+
+If you look into the database right now, you might see existing records. These were likely created using a built-in utility script designed to generate realistic test data.
+
+### The Utility Script ([backend/utils/generate_sample_students.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py))
+This script uses lists of common first names, last names, cities, and departments to randomly construct realistic student profiles. 
+
+**How it works:**
+1. It connects directly to the database session.
+2. It loops `N` times (default is 10).
+3. In each loop, it creates a new [Student](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#19-38) object with randomized data and a unique, dynamically generated [student_id](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#78-96) (e.g., `CS2026001`).
+4. It calls `db.add_all(students)` and then `db.commit()` to permanently save them to the [campus.db](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/campus.db) file.
+
+**If you want to add more random test data:**
+Run this in your terminal from the root folder:
+```bash
+python backend/utils/generate_sample_students.py 50
+```
+This will instantly add 50 new random students to your database.
+
+---
+
+## 3. How to Append Entirely NEW Real Data
+
+If you have real data (e.g., a spreadsheet of this year's newly admitted students) and want to append it to the database, you do **not** use the utility script. Instead, you use the admin dashboard's upload feature.
+
+Here is the exact flow of how new data gets appended:
+
+### Step A: Prepare your Data
+You must create a `.csv` (Comma Separated Values) file. According to the code ([backend/services/import_service.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/services/import_service.py)), the headers in row 1 of your CSV must look exactly like this:
+```csv
+student_id, name, department, year, email, phone, address
+```
+*(Note: [student_id](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#78-96) and `name` are strictly required. If [email](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#110-113) is blank, the system will auto-generate a placeholder like `ID@placeholder.com` for them).*
+
+### Step B: Upload via the Admin UI
+1. Log in to the application as an **Admin**.
+2. Navigate to the **"Upload Data"** page (`/admin/upload`).
+3. Scroll down to the **"Bulk Data Import"** section.
+4. Select your prepared `.csv` file and click **"Import Data"**.
+
+### Step C: What Happens in the Code (The Flow)
+1. **Frontend**: JavaScript intercepts the form, attaches the CSV file to a `FormData` object, and sends a `POST` request to `/api/admin/upload/data`.
+2. **Backend Route ([admin.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/routers/admin.py))**: The router receives the file, checks that it is indeed a CSV and that it is under 5MB. It then passes the raw file content to the `import_service`.
+3. **The Import logic ([import_service.py](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/services/import_service.py))**:
+    - The code reads the CSV line by line.
+    - It checks if the [student_id](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/utils/generate_sample_students.py#78-96) already exists in the database.
+    - **If it DOES NOT exist**: It creates a brand new [Student](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#19-38) record (Appending new data).
+    - **If it DOES exist**: It *Updates* the existing record with the new data from the CSV.
+    - It commits the changes row-by-row (`db.commit()`), so if row 50 has an error, rows 1 through 49 are still successfully saved.
+4. **Conclusion**: The backend returns a summary (e.g., "Created: 100, Updated: 5") back to the frontend to display to the user.
+
+### A Note on User Accounts
+Appending a row to the [Student](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#19-38) table via CSV **does not** automatically let that student log in. Logging in requires a [User](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#8-17) account. 
+To let the new students log in, an admin must go to the "Students" tab in the dashboard, select the new student, and assign them an email and password. This hits the `@router.post("/students/{student_id}/credentials")` endpoint, which takes password, hashes it, and creates the actual [User](file:///d:/Projects/New%20folder/Campus_Data_Automation/backend/database/models.py#8-17) row that allows them to log into the frontend.

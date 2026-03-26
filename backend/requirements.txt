@@ -1,37 +1,46 @@
 # -------------------------
 # Core Web Framework
 # -------------------------
-fastapi==0.110.0
-uvicorn[standard]==0.27.1
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+jinja2>=3.1.4
 
 # -------------------------
 # Database & ORM
 # -------------------------
-sqlalchemy==2.0.25
+sqlalchemy>=2.0.36
 
 # -------------------------
 # Authentication & Security
 # -------------------------
-passlib[bcrypt]==1.7.4
-python-jose[cryptography]==3.3.0
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
 
 # -------------------------
 # Request Handling
 # -------------------------
-python-multipart==0.0.9
+python-multipart>=0.0.20
 
 # -------------------------
 # Validation & Settings
 # -------------------------
-pydantic==2.6.1
-pydantic-settings==2.1.0
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
 
 # -------------------------
 # Data Processing (Future Modules)
 # -------------------------
-pandas==2.2.0
+pandas>=2.2.0
+openpyxl>=3.1.0  # Required for Excel (.xlsx) file support
 
 # -------------------------
 # Dev & Debug
 # -------------------------
-python-dotenv==1.0.1
+python-dotenv>=1.0.1
+
+# -------------------------
+# Testing
+# -------------------------
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+httpx>=0.28.0

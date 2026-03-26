@@ -1,0 +1,227 @@
+{% extends "layouts/student_base.html" %}
+
+{% block title %}Student Dashboard - University Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-card h3 {
+        color: white;
+        font-size: 2rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-card p {
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        width: 140px;
+        flex-shrink: 0;
+    }
+
+    .info-value {
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block student_content %}
+<!-- Loading State -->
+<div id="loadingContainer" style="text-align: center; padding: 3rem;">
+    <div
+        style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite;">
+    </div>
+    <p style="margin-top: 1rem; color: var(--text-secondary);">Loading your profile...</p>
+</div>
+
+<!-- Profile Content -->
+<div id="profileContainer" style="display: none;">
+    <!-- Welcome Section -->
+    <div class="card mb-4"
+        style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); color: white; border: none;">
+        <div style="padding: 2rem;">
+            <h1 style="color: white; margin-bottom: 0.5rem; font-size: 1.75rem;">Welcome back, <span
+                    id="welcomeName">Student</span>! 👋</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 0; font-size: 1rem;">Here's your academic
+                information at a glance.</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-3 mb-4">
+        <div class="card" style="border-left: 4px solid var(--primary-color);">
+            <h3 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+                STUDENT ID</h3>
+            <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0;"
+                id="statStudentId">-</p>
+        </div>
+        <div class="card" style="border-left: 4px solid var(--success-color);">
+            <h3 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+                CURRENT YEAR</h3>
+            <p style="font-size: 1.5rem; font-weight: 700; color: var(--success-color); margin-bottom: 0;"
+                id="statYear">-</p>
+        </div>
+        <div class="card" style="border-left: 4px solid var(--info-color);">
+            <h3 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+                DEPARTMENT</h3>
+            <p style="font-size: 1.125rem; font-weight: 700; color: var(--info-color); margin-bottom: 0;"
+                id="statDepartment">-</p>
+        </div>
+    </div>
+
+    <!-- Profile Information -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Personal Information</h2>
+            <p>Your registered details in the university system.</p>
+        </div>
+
+        <div id="profileInfo"></div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Quick Actions</h2>
+            <p>Common tasks and features.</p>
+        </div>
+
+        <div class="grid grid-3">
+            <button class="btn btn-secondary" onclick="window.location.href='/student/requests'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin-right: 0.5rem;">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Request Update
+            </button>
+            <button class="btn btn-secondary" onclick="showComingSoon('Document Upload')"
+                style="opacity: 0.6; cursor: not-allowed;" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin-right: 0.5rem;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Upload Document
+            </button>
+            <button class="btn btn-secondary" onclick="window.location.href='/student/requests'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin-right: 0.5rem;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                View History
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ super() }}
+<script>
+    // Load student profile
+    loadStudentProfile();
+
+    async function loadStudentProfile() {
+        try {
+            const data = await apiRequestJSON('/student/profile');
+            displayProfile(data);
+        } catch (error) {
+            console.error('Failed to load profile:', error);
+            document.getElementById('loadingContainer').innerHTML = `
+                <div class="alert alert-error">
+                    Failed to load profile: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function displayProfile(data) {
+        // Hide loading, show content
+        document.getElementById('loadingContainer').style.display = 'none';
+        document.getElementById('profileContainer').style.display = 'block';
+
+        // Update welcome name
+        const firstName = data.name ? data.name.split(' ')[0] : 'Student';
+        document.getElementById('welcomeName').textContent = firstName;
+
+        // Update header user info if elements exist (handled in layout but updated here with real data)
+        const headerUserName = document.getElementById('userName');
+        if (headerUserName) headerUserName.textContent = data.name || 'Student';
+
+        const headerUserAvatar = document.getElementById('userAvatar');
+        if (headerUserAvatar) {
+            const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'S';
+            headerUserAvatar.textContent = initials;
+        }
+
+        // Update stats
+        document.getElementById('statStudentId').textContent = data.student_id || 'N/A';
+        document.getElementById('statYear').textContent = data.year ? `Year ${data.year}` : 'N/A';
+        document.getElementById('statDepartment').textContent = data.department || 'N/A';
+
+        // Profile information
+        const profileHTML = `
+            <div class="info-row">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">${data.name || 'Not specified'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Student ID</div>
+                <div class="info-value">${data.student_id || 'Not specified'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Email</div>
+                <div class="info-value">${data.email || 'Not specified'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Department</div>
+                <div class="info-value">${data.department || 'Not specified'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Year</div>
+                <div class="info-value">${data.year ? `Year ${data.year}` : 'Not specified'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Phone</div>
+                <div class="info-value">${data.phone || 'Not specified'}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Address</div>
+                <div class="info-value">${data.address || 'Not specified'}</div>
+            </div>
+        `;
+        document.getElementById('profileInfo').innerHTML = profileHTML;
+    }
+</script>
+{% endblock %}
