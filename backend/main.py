@@ -9,7 +9,7 @@ from database.db import engine
 from database import models
 
 # Import routers
-from routers import auth, admin, students, reports, requests
+from routers import auth, admin, students, reports, requests, ingestion
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -19,8 +19,8 @@ os.makedirs("uploads", exist_ok=True)
 
 app = FastAPI(
     title="Campus Data Workflow Automation System",
-    version="1.0.0",
-    description="Module-1 Prototype: Authentication & RBAC"
+    version="2.0.0",
+    description="Schema-Driven Data Ingestion Engine with RBAC"
 )
 
 # CORS middleware for frontend
@@ -50,10 +50,10 @@ app.include_router(admin.router, prefix="/api")
 app.include_router(students.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(requests.router, prefix="/api")
+app.include_router(ingestion.router, prefix="/api")
 
 # Serve uploaded files
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
 
 # Frontend routes - serve HTML pages
 @app.get("/", response_class=HTMLResponse)
@@ -70,7 +70,7 @@ async def admin_dashboard_page(request: Request):
 
 @app.get("/admin/upload", response_class=HTMLResponse)
 async def admin_upload_page(request: Request):
-    """Serve admin upload page"""
+    """Serve admin data ingestion page"""
     return templates.TemplateResponse("admin/upload.html", {"request": request, "active_page": "upload"})
 
 

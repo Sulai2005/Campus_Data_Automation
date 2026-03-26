@@ -6,7 +6,6 @@ from typing import Optional
 
 from database.db import get_db
 from auth.dependencies import require_admin
-from services.upload_service import save_uploaded_file
 from services.report_service import generate_student_report
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -39,42 +38,6 @@ def admin_dashboard(
     }
 
 
-@router.post("/upload/file")
-async def upload_file(
-    file: UploadFile = File(...),
-    student_id: int = Form(...),
-    file_type: str = Form(...),
-    current_user: dict = Depends(require_admin),
-    db: Session = Depends(get_db)
-):
-    """
-    Upload a file (photo, document, etc.) for a student
-    
-    Args:
-        file: Uploaded file
-        student_id: ID of the student
-        file_type: Type of file (photo, certificate, id_proof, etc.)
-        current_user: Current authenticated admin user
-        db: Database session
-    
-    Returns:
-        Upload result with file metadata
-    """
-    result = await save_uploaded_file(
-        file=file,
-        student_id=student_id,
-        file_type=file_type,
-        uploaded_by=current_user.get("sub"),
-        db=db
-    )
-    
-
-    return {
-        "message": "File uploaded successfully",
-        "file_info": result
-    }
-
-
 @router.post("/upload/data")
 def upload_data(
     file: UploadFile = File(...),
@@ -82,28 +45,21 @@ def upload_data(
     db: Session = Depends(get_db)
 ):
     """
-    Bulk import student data from CSV
+    Legacy bulk import student data from CSV (deprecated - use /api/ingestion endpoints).
+    Kept for backward compatibility.
     """
+    from services.import_service import process_student_csv
     if not file.filename.lower().endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
-    
-    # Check size (approximate)
     file.file.seek(0, 2)
     size = file.file.tell()
     file.file.seek(0)
-    
     if size > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large (max 5MB)")
-
     try:
         content = file.file.read()
-        from services.import_service import process_student_csv
         result = process_student_csv(content, db)
-        
-        return {
-            "message": "Data processed successfully",
-            "summary": result
-        }
+        return {"message": "Data processed successfully", "summary": result}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -163,7 +119,8 @@ def get_students(
     query = db.query(Student)
     
     if department:
-        query = query.filter(Student.department == department)
+        from database.models import Department
+        query = query.join(Student.department_rel).filter(Department.name == department)
     if year:
         query = query.filter(Student.year == year)
         

@@ -38,7 +38,8 @@ def generate_student_basic_report(
     
     # Apply filters
     if department:
-        query = query.filter(Student.department == department)
+        from database.models import Department
+        query = query.join(Student.department_rel).filter(Department.name == department)
     if year:
         query = query.filter(Student.year == year)
     

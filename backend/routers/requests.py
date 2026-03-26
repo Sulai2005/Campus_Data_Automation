@@ -32,8 +32,7 @@ class RequestResponse(BaseModel):
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[str]
     
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 # Whitelist of editable fields
 EDITABLE_FIELDS = ['name', 'department', 'year', 'phone', 'address']

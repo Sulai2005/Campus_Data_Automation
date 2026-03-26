@@ -81,27 +81,30 @@ def get_student_basic_report(
 
 
 @router.get("/columns")
-def get_available_columns(current_user: dict = Depends(require_admin)):
+def get_available_columns_route(
+    schema_id: Optional[int] = Query(None, description="Schema ID to load dynamic columns from"),
+    current_user: dict = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
     """
-    Get all available columns from Student model dynamically
-    
-    **Returns:**
-    - Dictionary of column names and their display labels
-    
-    **Access:** Admin only
+    Get all available columns dynamically based on schema_id.
     """
-    columns = get_student_columns()
+    from reports.custom_report import get_available_columns
     
-    return {
-        "columns": [
-            {
-                "name": col_name,
-                "label": label,
-                "type": "string"  # Can be enhanced to include actual data types
-            }
-            for col_name, label in columns.items()
-        ]
-    }
+    try:
+        columns = get_available_columns(db=db, schema_id=schema_id)
+        return {
+            "columns": [
+                {
+                    "name": col_name,
+                    "label": label,
+                    "type": "string"
+                }
+                for col_name, label in columns.items()
+            ]
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/custom")
@@ -111,22 +114,12 @@ def get_custom_report(
     year: Optional[int] = Query(None, ge=1, le=4, description="Filter by year (1-4)"),
     empty_columns: int = Query(0, ge=0, le=10, description="Number of empty columns to add (0-10)"),
     custom_column_names: Optional[str] = Query(None, description="Comma-separated custom names for empty columns"),
+    schema_id: Optional[int] = Query(None, description="ID of dynamic schema to query"),
     current_user: dict = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Generate a custom report with user-selected columns
-    
-    **Columns are dynamically fetched from the Student model**
-    
-    **Parameters:**
-    - columns: Comma-separated column names (e.g., "student_id,name,email")
-    - department: Filter by department
-    - year: Filter by year (1-4)
-    - empty_columns: Number of custom empty columns to add
-    - custom_column_names: Custom names for empty columns (comma-separated)
-    
-    **Access:** Admin only
+    Generate a custom report dynamically based on schema_id.
     """
     
     # Import here to avoid circular imports
@@ -147,7 +140,8 @@ def get_custom_report(
             department=department,
             year=year,
             empty_columns=empty_columns,
-            custom_column_names=custom_names
+            custom_column_names=custom_names,
+            schema_id=schema_id
         )
         return report
     except ValueError as e:
@@ -162,7 +156,8 @@ def get_departments(current_user: dict = Depends(require_admin), db: Session = D
     
     **Access:** Admin only
     """
-    departments = db.query(Student.department).distinct().filter(Student.department.isnot(None)).all()
+    from database.models import Department
+    departments = db.query(Department.name).distinct().filter(Department.name.isnot(None)).all()
     return {
         "departments": [dept[0] for dept in departments if dept[0]]
     }
